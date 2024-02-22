@@ -1,8 +1,33 @@
-import class_base as cb
+import underpython.class_base as cb
 
 
 # basics
 def empty_function(): pass
+
+
+# Errors
+
+class UnderPythonError(Exception):
+    def __init__(self, message, objects: list = None):
+        self.message = message
+        self.obj = objects
+
+    def __str__(self):
+        s = f'\nUnderPythonError: {self.message}.'
+        if type(self.obj[0]) is list:
+            s += '\nWhile raising the error, we received '\
+                 'some objects or methods with some descriptions '\
+                 'that should be wrong:\n'
+            for o in self.obj:
+                s += f'A {str(type(o[0]))} object: {str(o[0])}, {str(o[1])}\n'
+        elif type(self.obj) is list:
+            s += '\nWhile raising the error, we received '\
+                 'some objects or methods that should be wrong:\n'
+            for o in self.obj:
+                s += f'A {str(type(o))} object: {str(o)}\n'
+        else:
+            s += '\nNo more description received\n'
+        return s
 
 
 # constant
@@ -152,6 +177,8 @@ class Wave:
 
 
 class Inventory:
+    def __init__(self):pass
+
     def events(self, func):
         setattr(self, func.__name__, func)
 
@@ -165,6 +192,8 @@ class Inventory:
 
 
 class Hooks:
+    def __init__(self):pass
+
     def events(self, func):
         setattr(self, func.__name__, func)
 
