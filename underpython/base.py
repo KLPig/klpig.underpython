@@ -110,58 +110,15 @@ class Animations:
 
     def on_update(self): pass
 
-    def __init__(self, name: str): pass
+    def __init__(self): pass
 
-    def add_animation(self, name: str, numbers: list[int]): pass
+    def add_animation(self, name: str, images: list[str]): pass
 
     def change_animation(self, name: str): pass
 
     def define_animation(self, old_ani: str, new_ani: str): pass
 
     def find_ani_name(self, name: str) -> str: pass
-
-
-class Player(cb.Player):
-    def __init__(self, *args): pass
-
-    def events(self, func):
-        setattr(self, func.__name__, func)
-
-    def on_attack(self, damage: int, target: cb.Monster) -> int | None: pass
-
-    def on_act(self, name: str, target: cb.Monster): pass
-
-    def on_item(self, name: str): pass
-
-    def on_mercy(self, target: cb.Monster): pass
-
-    def on_heal(self, hp: int) -> int | None: pass
-
-    def on_attacked(self, attacker: cb.Monster, damage: int) -> int | None: pass
-
-    def heal(self, hp: int): pass
-
-    def hurt(self, hp: int): pass
-
-
-class Monster(cb.Monster):
-    def __init__(self, *args): pass
-
-    def events(self, func):
-        setattr(self, func.__name__, func)
-
-    def on_act(self, name: str): pass
-
-    def on_spared(self): pass
-
-    def on_hurt(self, damage: int) -> int | None: pass
-
-    def on_heal(self, hp: int) -> int | None: pass
-
-    def on_attacked(self, damage: int) -> int | None: pass
-
-    def on_attack(self, damage: int) -> int | None: pass
-
 
 class Wave:
     def __init__(self, *args): pass
@@ -220,6 +177,8 @@ class Game:
     def build(self): pass
     def go(self): pass
 
+
+GAME: Game
 
 # constants
 
