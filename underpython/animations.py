@@ -1,11 +1,8 @@
 from game import *
-from base import Animations as _Animations
 import pygame as pg
 
-del Animations
 
-
-class Animations(_Animations):
+class Animations:
     def __init__(self):
         self.animation_defines: dict[str, str] = {}
         self.animations: dict[str, list[tuple[str, pg.rect.Rect]]] = {

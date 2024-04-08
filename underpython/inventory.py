@@ -24,14 +24,16 @@ class Inventory:
     def set_item(self, name: str, infinity: bool):
         self.items.append((name, infinity))
 
-    def set_inventory(self, inventory: list[str]):
-        for t in inventory:
+    def set_inventory(self, invent:list[str]):
+        for t in invent:
             if t not in self.items:
                 raise UnderPythonError(f'Unknown item: {t}',
-                                       [self.set_inventory, inventory])
+                                       [self.set_inventory, invent])
         self.inventory = inventory
 
     def __index__(self, index: int):
+        while len(self.inventory) > index + 1:
+            self.inventory.append('NULL')
         return self.inventory[index]
 
     def append_inventory(self, name: str):
