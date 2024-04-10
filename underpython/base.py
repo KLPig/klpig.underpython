@@ -53,9 +53,9 @@ class Hooks:
     def events(self, func):
         setattr(self, func.__name__, func)
 
-    def on_wave_end(self, wave: Wave): pass
+    def on_wave_end(self, wave): pass
 
-    def on_wave_start(self, wave: Wave): pass
+    def on_wave_start(self, wave): pass
 
     def on_init(self): pass
 

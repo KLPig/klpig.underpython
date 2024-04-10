@@ -1,3 +1,6 @@
+from underpython import base
+
+
 class Attack:
     def events(self, func):
         setattr(self, func.__name__, func)
@@ -8,7 +11,7 @@ class Attack:
 
     def on_remove(self): pass
 
-    def __init__(self, position: tuple[int, int], damage: int | Constant = CALCULATE_DAMAGE, rotation=0): pass
+    def __init__(self, position: tuple[int, int], damage: int | base.Constant = base.CALCULATE_DAMAGE, rotation=0): pass
 
     def update_shapes(self): pass
 

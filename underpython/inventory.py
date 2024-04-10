@@ -1,20 +1,20 @@
-from underpython import *
+from underpython import base
 
 
 class Inventory:
     hooks = ['on_item_used', 'on_update']
 
-    def on_item_used(self, this: Inventory, item_name: str):
+    def on_item_used(self, this, item_name: str):
         pass
 
-    def on_update(self, this: Inventory):
+    def on_update(self, this):
         pass
 
-    def events(self, function: type(empty_function)):
+    def events(self, function: type(base.empty_function)):
         if function.__name__ in self.hooks:
             self.__setattr__(function.__name__, function)
         else:
-            raise UnderPythonError(f'Undefined hook "{function.__name__}"',
+            raise base.UnderPythonError(f'Undefined hook "{function.__name__}"',
                                     [self.events, function])
 
     def __init__(self):
@@ -27,9 +27,9 @@ class Inventory:
     def set_inventory(self, invent:list[str]):
         for t in invent:
             if t not in self.items:
-                raise UnderPythonError(f'Unknown item: {t}',
+                raise base.UnderPythonError(f'Unknown item: {t}',
                                        [self.set_inventory, invent])
-        self.inventory = inventory
+        self.inventory = invent
 
     def __index__(self, index: int):
         while len(self.inventory) > index + 1:

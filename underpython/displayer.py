@@ -1,6 +1,6 @@
-from underpython import *
+from underpython import game
 import pygame as pg
-import resources as res
+import underpython.resources as res
 
 
 class Displayer:
@@ -9,23 +9,32 @@ class Displayer:
         self.window = pg.display.set_mode((1280, 960), pg.SCALED)
         pg.display.set_caption('UNDERTALE')
         pg.display.set_icon(res.icon)
-        self.pre_surface = pg.surface.Surface((1280, 960))
-        self.blits = []
+        self.surfaces = [pg.surface.Surface((1280, 960)) for i in range(3)]
 
-    def blit(self, surface, rect):
-        self.blits.append((surface, rect))
+    def clear(self):
+        for surface in self.surfaces:
+            surface.fill((0, 0, 0))
 
     def _update(self):
         self.window.fill((0, 0, 0))
-        self.pre_surface.fill((0, 0, 0))
-        for surface, rect in self.blits:
-            self.pre_surface.blit(surface, rect)
         x, y, r = self.camera
-        self.pre_surface = pg.transform.rotate(self.pre_surface, r)
-        pSurfaceRect = self.pre_surface.get_rect()
-        pSurfaceRect.center = (640 + x, 480 + y)
-        self.window.blit(self.pre_surface, pSurfaceRect)
-        self.blits.clear()
+        for surface in self.surfaces:
+            r_surf = pg.transform.rotate(surface, r)
+            r_surf_rect = r_surf.get_rect()
+            r_surf_rect.topleft = (x, y)
+            self.window.blit(r_surf, r_surf_rect)
+
+    def __index__(self, idx) -> pg.surface.Surface:
+        return self.surfaces[idx]
+
+    def __call__(self) -> pg.surface.Surface:
+        return self.surfaces[1]
 
 
+class UI:
+    def __init__(self):
+        pass
 
+    def _update(self):
+        d = game.GAME.displayer[1]
+        d.clear()
