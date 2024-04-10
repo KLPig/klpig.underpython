@@ -1,10 +1,8 @@
-from underpython import *
-from base import Monster as _Monster
-del Monster
+from underpython import animations as ani
 
 
-class Monster(_Monster):
-    def __init__(self, animation: Animations | None, name: str, hp: int, at: int, df: int):
+class Monster:
+    def __init__(self, animation: object | None, name: str, hp: int, at: int, df: int):
         self.ani = animation
         self.name = name
         self.hp = hp
