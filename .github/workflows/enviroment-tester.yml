@@ -1,0 +1,36 @@
+name: Enviroment Tester
+run-name: Testing enviroment by @${{ github.actor }}
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-terminal:
+    name: Testing Terminal
+    runs-on: ubuntu-latest
+    steps:
+    - name: Testing Terminal
+    - run: echo Hello, World!
+
+  test-python:
+    name: Testing if Python2 or Python3 exists
+    runs-on: ubuntu-latest
+    needs: test-terminal
+    steps:
+    - name: Testing python using terminal
+    - run: python -v
+    
+    - name: Testing if python3 using ternimal
+    - run: python3 -v
+
+  test-pip:
+    name: Testing if pip exists
+    runs-on: ubuntu-latest
+    needs: test-python
+    steps:
+    - name: Testing pip itself
+    - run: pip -v
+    - name: Testing pip using python
+    - run: python -m pip -v
+
+    
