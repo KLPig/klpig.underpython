@@ -1,5 +1,6 @@
 name: Python Installer
 on:
+  workflow_dispatch:
   workflow_call:
     inputs:
       file-path:
