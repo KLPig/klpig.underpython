@@ -1,0 +1,52 @@
+name: Python Tester
+run-name: PyTesting
+
+on:
+  workflow_dispatch:
+    inputs:
+      os:
+        type: choice
+        required: true
+        default: ubuntu
+        options:
+        - macos
+        - windows
+        - ubuntu
+      python-ver:
+        type: choice
+        required: true
+        default: python3
+        options:
+        - python3
+        - python
+      test-program:
+        type: string
+        required: true
+        default: main.py
+
+jobs:
+  env-test:
+    name: Enviroment Testing
+    runs-on: '${{ inputs.os }}-latest'
+    steps:
+    - name: 'Testing ${{ inputs.python-ver }}'
+      run: '${{ inputs.python-ver }} -v'
+    - name: 'Testing pip'
+      run: '${{ inputs.python-ver }} -m pip -v'
+  run:
+    needs: env-test
+    name: Running
+    runs-on: '${{ inputs.os }}-latest'
+    steps:
+    - name: 'Upgrade pip'
+      run: '${{ inputs.python-ver }} -m pip install --upgrade pip'
+    - name: 'Install pytest'
+      run: '${{ inputs.python-ver }} -m pip install pytest'
+    - name: 'Testing pytest'
+      run: 'pytest'
+    - name: 'Run program using ${{ inputs.python-ver }}'
+      run: '${{ inputs.python-ver }} ${{ inputs.test-program }}'
+    - name: 'Run programme using pytest'
+      run: 'pytest ${{ inputs.test-program }}'
+
+        
