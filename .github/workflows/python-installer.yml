@@ -36,10 +36,10 @@ jobs:
       run: '${{ matrix.pv }} -m pip install --upgrade pip'
     - name: 'Installing pyinstaller on ${{ matrix.os }}'
       run: |
-        '${{ matrix.pv }} -m pip install pyinstaller'
-        '${{ matrix.pv }} -m pyinstaller'
+        ${{ matrix.pv }} -m pip install pyinstaller
+        ${{ matrix.pv }} -m pyinstaller
     - name: 'Packaging by pyinstaller'
       run: |
-        '${{ matrix.pv }} -m pyinstaller -D -n app-${{ matrix.os }} - ${{ matrix.pv }} ${{ inputs.file-path }}'
+        ${{ matrix.pv }} -m pyinstaller -D -n app-${{ matrix.os }} - ${{ matrix.pv }} ${{ inputs.file-path }}
     
     
