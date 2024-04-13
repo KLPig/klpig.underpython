@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Testing Terminal
-    - run: echo Hello, World!
+      run: echo Hello, World!
 
   test-python:
     name: Testing if Python2 or Python3 exists
@@ -18,10 +18,10 @@ jobs:
     needs: test-terminal
     steps:
     - name: Testing python using terminal
-    - run: python -v
+      run: python -v
     
     - name: Testing if python3 using ternimal
-    - run: python3 -v
+      run: python3 -v
 
   test-pip:
     name: Testing if pip exists
@@ -29,8 +29,8 @@ jobs:
     needs: test-python
     steps:
     - name: Testing pip itself
-    - run: pip -v
+      run: pip -v
     - name: Testing pip using python
-    - run: python -m pip -v
+      run: python -m pip -v
 
     
