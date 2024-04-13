@@ -27,6 +27,13 @@ class UnderPythonError(Exception):
         return s
 
 
+class UnderPythonWarning(Warning):
+    def __init__(self, message):
+        self.message = message
+
+    def __str__(self):
+        return 'UnderPythonWarning: %s' % self.message
+
 # constant
 
 

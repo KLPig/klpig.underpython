@@ -1,8 +1,5 @@
-from underpython import animations as ani
-
-
 class Monster:
-    def __init__(self, animation: object | None, name: str, hp: int, at: int, df: int):
+    def __init__(self, animation, name: str, hp: int, at: int, df: int):
         self.ani = animation
         self.name = name
         self.hp = hp

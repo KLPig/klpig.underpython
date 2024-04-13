@@ -2,7 +2,7 @@ from underpython import *
 import os
 
 player = Player('Chara', 92, 99, 16)
-flowery_ani = Animations((600, 50))
+flowery_ani = Animations((640, 240), 4, tpf=5)
 flowery_ani.add_animation('idle', [
     'monsters.flowery.idle.1',
     'monsters.flowery.idle.2',
@@ -31,5 +31,9 @@ class Bullet(Wave):
 waves = [Bullet]
 
 GAME = Game(player, monsters, waves, os.path.join(os.path.dirname(__file__), 'resources'))
+write_game(GAME)
+
 
 GAME.build()
+
+GAME.go()

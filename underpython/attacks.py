@@ -1,4 +1,8 @@
+import copy
+
 from underpython import base
+import pygame as pg
+import math
 
 
 class Attack:
@@ -49,4 +53,31 @@ class Attacks:
     def __add__(self, atk: Attack): pass
 
     def __index__(self, idx: int): pass
+
+
+class SoulRect:
+    def __init__(self):
+        self.rect = pg.rect.Rect((640, 300, 1, 1))
+        self.exp_rect = pg.rect.Rect((40, 450, 1200, 360))
+
+    def _update(self):
+        if math.fabs(self.exp_rect.left - self.rect.left) < 10:
+            self.rect.left = self.exp_rect.left
+        else:
+            self.rect.left += (self.exp_rect.left - self.rect.left) // 2
+
+        if math.fabs(self.exp_rect.width - self.rect.width) < 20:
+            self.rect.width = self.exp_rect.width
+        else:
+            self.rect.width += (self.exp_rect.width - self.rect.width) // 2
+
+        if math.fabs(self.exp_rect.top - self.rect.top) < 10:
+            self.rect.top = self.exp_rect.top
+        else:
+            self.rect.top += (self.exp_rect.top - self.rect.top) // 2
+
+        if math.fabs(self.exp_rect.height - self.rect.height) < 10:
+            self.rect.height = self.exp_rect.height
+        else:
+            self.rect.height += (self.exp_rect.height - self.rect.height) // 2
 
