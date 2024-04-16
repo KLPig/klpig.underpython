@@ -55,10 +55,7 @@ NORMAL_ROUTE = GameMethod(4)
 
 
 class Hooks:
-    def __init__(self):pass
-
-    def events(self, func):
-        setattr(self, func.__name__, func)
+    def __init__(self): pass
 
     def on_wave_end(self, wave): pass
 

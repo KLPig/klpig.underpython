@@ -6,3 +6,9 @@ class Monster:
         self.max_hp = hp
         self.at = at
         self.df = df
+
+    def hurt(self, damage: int):
+        self.hp = max(self.hp - damage, 0)
+
+    def heal(self, num: int):
+        self.hp = min(self.hp + num, self.max_hp)

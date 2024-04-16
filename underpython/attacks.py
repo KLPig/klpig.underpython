@@ -58,7 +58,7 @@ class Attacks:
 class SoulRect:
     def __init__(self):
         self.rect = pg.rect.Rect((640, 300, 1, 1))
-        self.exp_rect = pg.rect.Rect((40, 450, 1200, 360))
+        self.exp_rect = pg.rect.Rect((40, 450, 1200, 300))
 
     def _update(self):
         if math.fabs(self.exp_rect.left - self.rect.left) < 10:

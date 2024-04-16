@@ -25,7 +25,7 @@ class Animations:
                       nxt: str = 'self'):
         self.animation_defines[name] = name
         self.animations[name] = [m for m in images]
-        if nxt == self:
+        if nxt == 'self':
             self.nxt[name] = name
         else:
             self.nxt[name] = nxt
@@ -48,7 +48,7 @@ class Animations:
     def _update_frame(self):
         name, no = self.instant
         if no >= len(self.animations[name]) - 1:
-            self.change_animation(name)
+            self.change_animation(self.nxt[name])
         else:
             self.instant = (name, no + 1)
 

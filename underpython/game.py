@@ -7,8 +7,14 @@ import sys
 
 class Game:
     Ts = 30
+    states = ['SELECT', 'FIGHT', 'ACT', 'ITEM', 'MERCY', 'SAVE', 'ATTACK', 'DIALOG', 'SOUL']
+
+    def set_event(self, func):
+        if func.__name__ in self.hook.__dir__():
+            self.hook.__setattr__(func.__name__, func)
 
     def __init__(self, _player: player.Player, monsters: list[monster.Monster], waves: list[type(wave.Wave)], resource_path: str = None):
+        pg.init()
         self.hook = base.Hooks()
         self.inventory = inventory.Inventory()
         self.player = _player
@@ -24,6 +30,8 @@ class Game:
         self.ui = displayer.UI()
         self.key_events = []
         self.state = 'SELECT'
+        self.tick = 0
+        self.font = pg.font.SysFont('dtm-sans', 75)
 
     def _load_graphics(self):
         path = os.path.join(self.rp, 'images')
@@ -50,6 +58,7 @@ class Game:
         self._loop()
 
     def _update(self, tick: int):
+        self.tick = tick
         self.displayer.clear()
         self.key_events = []
         for event in pg.event.get():
@@ -77,6 +86,10 @@ class Game:
                 )
             self.st = time.time()
             tick += 1
+
+    def set_state(self, state: str):
+        if state in self.states:
+            self.state = state
 
 
 GAME: Game

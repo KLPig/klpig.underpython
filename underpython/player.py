@@ -5,12 +5,13 @@ class Player:
     hooks = ['on_attack', 'on_act', 'on_item', 'on_mercy', 'on_heal',
              'on_attacked']
 
-    def __init__(self, name: str, hp: int, at: int, df: int):
+    def __init__(self, name: str, hp: int, at: int, df: int, lv: int):
         self.name = name
         self.hp = hp
         self.max_hp = hp
         self.at = at
         self.df = df
+        self.lv = lv
 
     def events(self, func):
         if func.__name__ in self.hooks:
