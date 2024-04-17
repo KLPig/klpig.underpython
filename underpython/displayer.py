@@ -41,6 +41,82 @@ class Displayer:
 
 
 class UI:
+    class dialoger:
+        args = ['no-skip', 'tpc', 'color']
+
+        def __init__(self, string: str, kwargs):
+            self.arg = {'no_skip': False, 'tpc': 0, 'color': (255, 255, 255)}
+            self.left = 50
+            for k, v in kwargs.items():
+                if k in self.args:
+                    self.arg[k] = v
+                elif k == 'left':
+                    self.left = v
+            cmd = ''
+            writing_cmd = False
+            self.tasks = []
+            self.idx = 0
+            self._timer = 0
+            self.texts = ['* ']
+            self.line = 0
+            self.end = False
+            for c in string:
+                print(c)
+                if c == ']':
+                    writing_cmd = False
+                    self.tasks.append('[[' + cmd)
+                    cmd = ''
+                    continue
+                elif c == '[':
+                    writing_cmd = True
+                    continue
+                if writing_cmd:
+                    cmd += c
+                else:
+                    self.tasks.append(c)
+
+        def process(self):
+            if self.idx >= len(self.tasks):
+                return True
+            s = self.tasks[self.idx]
+            while s.startswith('[['):
+                cmd = s.removeprefix('[[')
+                if cmd == 'endl':
+                    self.texts.append('* ')
+                    self.line += 1
+                self.idx += 1
+                if self.idx >= len(self.tasks):
+                    return True
+                s = self.tasks[self.idx]
+            self.texts[self.line] += s
+            self.idx += 1
+            return self.idx >= len(self.tasks)
+
+        def update(self):
+            if self.end:
+                return
+            if self._timer > 0:
+                self._timer -= 1
+                return
+            if pg.K_x in game.GAME.key_events and not self.arg['no_skip']:
+                while not self.process():
+                    pass
+            if self.process():
+                if pg.K_z in game.GAME.key_events:
+                    self.end = True
+                    return
+            else:
+                self._timer = self.arg['tpc']
+            r = game.GAME.ui.soul_rect.rect
+            top = r.top + 50
+            for text in self.texts:
+                txt = game.GAME.font.render(text, True, self.arg['color'])
+                txt_rect = txt.get_rect()
+                txt_rect.topleft = (r.left + self.left, top)
+                game.GAME.displayer().blit(txt, txt_rect)
+                top += 120
+
+
     def attack_bars(self, func):
         setattr(self, '_atk_bars', func)
 
@@ -116,6 +192,8 @@ class UI:
         self._state = 'select'
         self._attack_score = 0
         self._damage_timer = 0
+        self._dialog: self.dialoger = None
+        self._dialog_states = ('', '')
 
     def _attack_bar_shower(self, process: int):
         r = self.soul_rect.rect
@@ -130,6 +208,12 @@ class UI:
                 pg.draw.rect(game.GAME.displayer[0], (255, f * 255, f * 255), (x - 20, r.top, 40, r.height))
                 pg.draw.rect(game.GAME.displayer[0], (0, 0, 0), (x - 20, r.top, 40, r.height), width=10)
                 f = not f
+
+    def dialog(self, string: str, **kwargs):
+        self._dialog = self.dialoger(string, kwargs)
+        self._dialog_states = self._state, game.GAME.state
+        self._state = 'dialog'
+        game.GAME.set_state('DIALOG')
 
     def _update(self):
         if not self.text_setup:
@@ -155,6 +239,8 @@ class UI:
                     game.GAME.set_state('ATTACK')
                     self._state = 'show_bg'
                     self._attack_display_timer = 0
+                elif self.selected == 1:
+                    self.dialog("Yes.[endl]Hello")
 
         else:
             for button in self.buttons:
@@ -210,4 +296,12 @@ class UI:
         else:
             pg.draw.rect(game.GAME.displayer[0], (0, 0, 0), self.soul_rect.rect)
             pg.draw.rect(game.GAME.displayer[0], (255, 255, 255), self.soul_rect.rect, 8)
+
+        if self._dialog is not None:
+            if self._dialog.end:
+                self._state, game.GAME.state = self._dialog_states
+                del self._dialog
+                self._dialog = None
+            else:
+                self._dialog.update()
 
