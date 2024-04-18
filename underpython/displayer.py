@@ -60,6 +60,7 @@ class UI:
             self.texts = ['* ']
             self.line = 0
             self.end = False
+            self.res = False
             for c in string:
                 print(c)
                 if c == ']':
@@ -103,6 +104,7 @@ class UI:
                     pass
             if self.process():
                 if pg.K_z in game.GAME.key_events:
+                    self.res = True
                     self.end = True
                     return
             else:
@@ -116,15 +118,68 @@ class UI:
                 game.GAME.displayer().blit(txt, txt_rect)
                 top += 120
 
+    class selector(dialoger):
+        args = ['color']
+
+        def __init__(self, options: list[str], kwargs):
+            self.arg = {'color': (255, 255, 255)}
+            for k, v in kwargs.items():
+                if k in self.args:
+                    self.arg[k] = v
+            self.options = options
+            self.res = 0
+            self.end = False
+            self._pos = 0
+            self._dir = 0
+            self.sr = []
+            self.first = True
+            r = game.GAME.ui.soul_rect.exp_rect
+            r.width = 400
+            r.centerx = 640
+            b = r.bottom
+            r.height = 500
+            r.bottom = b
+            for opt in options:
+                txt = game.GAME.font.render(opt, True, self.arg['color'])
+                txt_rect = txt.get_rect()
+                txt_rect.centerx = 640
+                self.sr.append((txt, txt_rect))
+
+        def update(self):
+            if self.first:
+                self.first = False
+                return
+            if self.end:
+                return
+            if self._pos % 10 == 0:
+                self.idx = self._pos // 10
+                if (pg.K_DOWN in game.GAME.key_events and
+                        self.idx < len(self.sr) - 1):
+                    self._dir = 1
+                elif pg.K_UP in game.GAME.key_events and self.idx:
+                    self._dir = -1
+                elif pg.K_z in game.GAME.key_events:
+                    self.end = True
+                    self.res = self.idx
+                    return
+                else:
+                    self._dir = 0
+            self._pos += self._dir * 2
+            i = 0
+            for t, r in self.sr:
+                if self.idx - 3 < i < self.idx + 3:
+                    r.centery = (game.GAME.ui.soul_rect.rect.centery +
+                                 (i - self._pos / 10) * 80)
+                    t.set_alpha(255 - min(abs(r.centery - game.GAME.ui.soul_rect.rect.centery) // 2, 255))
+                    game.GAME.displayer[0].blit(t, r)
+                i += 1
+
 
     def attack_bars(self, func):
         setattr(self, '_atk_bars', func)
 
     def _atk_bars(self) -> list[tuple[int, int]]:
-        tmp = []
-        for i in range(5):
-            d = random.choice([-1, 1])
-            tmp.append((-d * (600 + i * 200) + 640, d * 30))
+        tmp = [(40, 30)]
         return tmp
 
     def _setup_buttons(self, save):
@@ -192,26 +247,50 @@ class UI:
         self._state = 'select'
         self._attack_score = 0
         self._damage_timer = 0
-        self._dialog: self.dialoger = None
+        self._dialog: UI.dialoger = None
         self._dialog_states = ('', '')
+        self.target = 0
+        self.dialog_res = ''
 
-    def _attack_bar_shower(self, process: int):
+    def _attack_bar_shower(self, process: int, swap: bool = False):
         r = self.soul_rect.rect
+        if len(self._attack_bars) > 1:
+            s = len(self._attack_bars)
+            if not self._attack_bars[s - 2][1]:
+                self._attack_bars.pop(s - 2)
         for i in range(process):
             h = math.sqrt(process) - math.sqrt(process - i)
             h *= 10
             for x in [i * 4, -i * 4]:
                 rect = pg.rect.Rect(r.centerx + x - 2, r.top + h,  4, r.height - 2 * h)
                 pg.draw.rect(game.GAME.displayer[0], (255, 255 - i // 8 * 8, 255 - i // 8 * 8), rect)
-            f: bool = game.GAME.tick // 5 % 2
+            f: bool = game.GAME.tick // 2 % 2
             for x, _ in self._attack_bars:
-                pg.draw.rect(game.GAME.displayer[0], (255, f * 255, f * 255), (x - 20, r.top, 40, r.height))
-                pg.draw.rect(game.GAME.displayer[0], (0, 0, 0), (x - 20, r.top, 40, r.height), width=10)
+                if _:
+                    pg.draw.rect(game.GAME.displayer[0], (255, f * 255, f * 255), (x - 20, r.top, 40, r.height))
+                    pg.draw.rect(game.GAME.displayer[0], (0, 0, 0), (x - 20, r.top, 40, r.height), width=10)
+                else:
+                    bar = pg.surface.Surface((40, r.height))
+                    bar.fill((255, f * 255, f * 255))
+                    pg.draw.rect(bar, (0, 0, 0), bar.get_rect(), width=10)
+                    bar.set_alpha(50)
+                    bar_rect = bar.get_rect()
+                    bar_rect.center = x, r.centery
+                    game.GAME.displayer[0].blit(bar, bar_rect)
+
                 f = not f
 
     def dialog(self, string: str, **kwargs):
         self._dialog = self.dialoger(string, kwargs)
         self._dialog_states = self._state, game.GAME.state
+        self._state = 'dialog'
+        game.GAME.set_state('DIALOG')
+
+    def choose(self, options: list[str], end_state='self', **kwargs):
+        self._dialog = self.selector(options, kwargs)
+        self._dialog_states = self._state, game.GAME.state
+        if end_state != 'self':
+            self._dialog_states = end_state, game.GAME.state
         self._state = 'dialog'
         game.GAME.set_state('DIALOG')
 
@@ -237,10 +316,15 @@ class UI:
             elif pg.K_z in game.GAME.key_events:
                 if self.selected == 0:
                     game.GAME.set_state('ATTACK')
-                    self._state = 'show_bg'
+                    self._state = 'atk_choosing'
+                    names = []
+                    for m in game.GAME.monsters:
+                        names.append(m.name)
+                    self.choose(names, 'show_bg')
                     self._attack_display_timer = 0
+                    self._attack_bars = []
                 elif self.selected == 1:
-                    self.dialog("Yes.[endl]Hello")
+                    self.choose(['Hello', 'Goodbye'])
 
         else:
             for button in self.buttons:
@@ -256,6 +340,8 @@ class UI:
             if math.pow(self._attack_display_timer, 2) > min(self.soul_rect.rect.width // 8, 255):
                 self._attack_bar_shower(min(self.soul_rect.rect.width // 8, 255))
                 if self._state == 'show_bg':
+                    self.soul_rect.exp_rect = pg.rect.Rect(40, 450, 1200, 300)
+                    self.target = self.dialog_res
                     self._state = 'show_bars'
                     self._attack_bars = self._atk_bars()
                     self._attack_score = 0
@@ -263,18 +349,19 @@ class UI:
                     for i in range(len(self._attack_bars)):
                         self._attack_bars[i] = \
                             (self._attack_bars[i][0] + self._attack_bars[i][1], self._attack_bars[i][1])
-                    if len(self._attack_bars):
-                        if abs(self._attack_bars[0][0] - 640) > 700 or pg.K_z in game.GAME.key_events:
+                    if self._attack_bars[0][1]:
+                        if abs(self._attack_bars[0][0] - 640) > 650 or pg.K_z in game.GAME.key_events:
                             self._attack_score += int(math.sqrt(500 - min(abs(self._attack_bars[0][0] - 640), 500)))
+                            self._attack_bars.append((self._attack_bars[0][0], 0))
                             self._attack_bars.pop(0)
                     else:
                         self.soul_rect.exp_rect.left += 200
                         self.soul_rect.exp_rect.width -= 400
-                        self._attack_score = self._attack_score // 10
+                        self._attack_score = self._attack_score
                         self._state = 'show_damage'
                         self._damage_timer = 0
                 elif self._state == 'show_damage':
-                    m = game.GAME.monsters[0]
+                    m = game.GAME.monsters[self.target]
                     d = game.GAME.displayer[0]
                     if self._damage_timer == 5:
                         m.ani.change_animation('hurt')
@@ -300,6 +387,7 @@ class UI:
         if self._dialog is not None:
             if self._dialog.end:
                 self._state, game.GAME.state = self._dialog_states
+                self.dialog_res = self._dialog.res
                 del self._dialog
                 self._dialog = None
             else:

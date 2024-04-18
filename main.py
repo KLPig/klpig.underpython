@@ -2,6 +2,31 @@ from underpython import *
 import os
 
 player = Player('Chara', 92, 99, 16, 19)
+flowery_ani = Animations((240, 240), 4, tpf=5)
+flowery_ani.add_animation('idle', [
+    'monsters.flowery.idle.1',
+    'monsters.flowery.idle.2',
+    'monsters.flowery.idle.3',
+    'monsters.flowery.idle.4',
+    'monsters.flowery.idle.5',
+    'monsters.flowery.idle.6',
+    'monsters.flowery.idle.7',
+    'monsters.flowery.idle.6',
+    'monsters.flowery.idle.5',
+    'monsters.flowery.idle.4',
+    'monsters.flowery.idle.3',
+    'monsters.flowery.idle.2',
+    'monsters.flowery.idle.1',
+                          ])
+flowery_ani.add_animation('hurt',
+                          [
+                              'monsters.flowery.idle.1',
+                              'monsters.flowery.idle.1',
+                              'monsters.flowery.idle.1',
+                              'monsters.flowery.idle.1'
+                          ], nxt='idle')
+flowery_ani.change_animation('idle')
+flowery_a = Monster(flowery_ani, 'floweryA', 500, 90, 5)
 flowery_ani = Animations((640, 240), 4, tpf=5)
 flowery_ani.add_animation('idle', [
     'monsters.flowery.idle.1',
@@ -26,9 +51,34 @@ flowery_ani.add_animation('hurt',
                               'monsters.flowery.idle.1'
                           ], nxt='idle')
 flowery_ani.change_animation('idle')
-flowery = Monster(flowery_ani, 'flowery', 500, 90, 5)
+flowery_b = Monster(flowery_ani, 'floweryB', 500, 90, 5)
+flowery_ani = Animations((1040, 240), 4, tpf=5)
+flowery_ani.add_animation('idle', [
+    'monsters.flowery.idle.1',
+    'monsters.flowery.idle.2',
+    'monsters.flowery.idle.3',
+    'monsters.flowery.idle.4',
+    'monsters.flowery.idle.5',
+    'monsters.flowery.idle.6',
+    'monsters.flowery.idle.7',
+    'monsters.flowery.idle.6',
+    'monsters.flowery.idle.5',
+    'monsters.flowery.idle.4',
+    'monsters.flowery.idle.3',
+    'monsters.flowery.idle.2',
+    'monsters.flowery.idle.1',
+                          ])
+flowery_ani.add_animation('hurt',
+                          [
+                              'monsters.flowery.idle.1',
+                              'monsters.flowery.idle.1',
+                              'monsters.flowery.idle.1',
+                              'monsters.flowery.idle.1'
+                          ], nxt='idle')
+flowery_ani.change_animation('idle')
+flowery_c = Monster(flowery_ani, 'floweryC', 500, 90, 5)
 
-monsters = [flowery]
+monsters = [flowery_a, flowery_b, flowery_c]
 
 
 class Bullet(Wave):
