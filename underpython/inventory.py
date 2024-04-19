@@ -4,10 +4,10 @@ from underpython import base
 class Inventory:
     hooks = ['on_item_used', 'on_update']
 
-    def on_item_used(self, this, item_name: str):
+    def on_item_used(self, item_name: str) -> str | None:
         pass
 
-    def on_update(self, this):
+    def on_update(self):
         pass
 
     def events(self, function: type(base.empty_function)):

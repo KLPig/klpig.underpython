@@ -26,7 +26,14 @@ flowery_ani.add_animation('hurt',
                               'monsters.flowery.idle.1'
                           ], nxt='idle')
 flowery_ani.change_animation('idle')
-flowery_a = Monster(flowery_ani, 'floweryA', 500, 90, 5)
+flowery_a = Monster(flowery_ani, 'floweryA', 500, 90, 5, ['damn', 'shit', 'm3'])
+
+
+@flowery_a.events
+def on_act(name: str) -> str | None:
+    if name == 'damn':
+        return 'Damn[endl]Shit[endl]M3'
+
 flowery_ani = Animations((640, 240), 4, tpf=5)
 flowery_ani.add_animation('idle', [
     'monsters.flowery.idle.1',

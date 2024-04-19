@@ -1,4 +1,3 @@
-import random
 from underpython import game, attacks
 import pygame as pg
 import underpython.resources as res
@@ -45,6 +44,7 @@ class UI:
         args = ['no-skip', 'tpc', 'color']
 
         def __init__(self, string: str, kwargs):
+            game.GAME.ui.soul_rect.exp_rect = pg.rect.Rect(40, 450, 1200, 300)
             self.arg = {'no_skip': False, 'tpc': 0, 'color': (255, 255, 255)}
             self.left = 50
             for k, v in kwargs.items():
@@ -174,7 +174,6 @@ class UI:
                     game.GAME.displayer[0].blit(t, r)
                 i += 1
 
-
     def attack_bars(self, func):
         setattr(self, '_atk_bars', func)
 
@@ -183,7 +182,7 @@ class UI:
         return tmp
 
     def _setup_buttons(self, save):
-        self.names = ['fight', 'act', 'fight', 'act']
+        self.names = ['fight', 'act', 'item', 'mercy']
         for i in range(len(self.names)):
             anim = ani.Animations((160 + 320 * i, 900), 2, 10)
             anim.add_animation('idle',
@@ -192,6 +191,12 @@ class UI:
                                ['ui.button.%s.selected.%d' % (self.names[i], n) for n in [1, 1, 2, 3, 3, 2]])
             anim.change_animation('idle')
             self.buttons.append(anim)
+        if save:
+            anim = ani.Animations((480, 900), 2, 10)
+            anim.add_animation('idle', ['ui.button.save.idle.1'])
+            anim.add_animation('selected', ['ui.button.save.selected.%d' % i for i in range(1, 8)])
+            anim.change_animation('idle')
+            self.buttons[1] = anim
 
     def _setup_states(self):
         p = game.GAME.player
@@ -280,9 +285,11 @@ class UI:
 
                 f = not f
 
-    def dialog(self, string: str, **kwargs):
+    def dialog(self, string: str, end_state='self', **kwargs):
         self._dialog = self.dialoger(string, kwargs)
         self._dialog_states = self._state, game.GAME.state
+        if end_state != 'self':
+            self._dialog_states = end_state, game.GAME.state
         self._state = 'dialog'
         game.GAME.set_state('DIALOG')
 
@@ -324,7 +331,18 @@ class UI:
                     self._attack_display_timer = 0
                     self._attack_bars = []
                 elif self.selected == 1:
-                    self.choose(['Hello', 'Goodbye'])
+                    game.GAME.set_state('ACT')
+                    self._state = 'act_mc'
+                    names = []
+                    for m in game.GAME.monsters:
+                        names.append(m.name)
+                    self.choose(names, 'act_pac')
+                elif self.selected == 2:
+                    if len(game.GAME.inventory.inventory):
+                        game.GAME.set_state('ACT')
+                        self._state = 'item_ic'
+                        self.choose(game.GAME.inventory.inventory, 'item_e')
+
 
         else:
             for button in self.buttons:
@@ -336,6 +354,32 @@ class UI:
         self._update_states()
         self._draw_states()
 
+        if game.GAME.state == 'ACT':
+            if self._state == 'act_pac':
+                self._state = 'act_ac'
+                self.target = self.dialog_res
+                self.choose(game.GAME.monsters[self.target].acts, 'act_e')
+            elif self._state == 'act_e':
+                m = game.GAME.monsters[self.target]
+                txt = m.on_act(m.acts[self.dialog_res])
+                if txt is not None:
+                    self.dialog(txt, 'act_ee')
+                else:
+                    self._state = 'act_ee'
+            elif self._state == 'act_ee':
+                self._state = 'select'
+                game.GAME.set_state('SELECT')
+        elif game.GAME.state == 'ITEM':
+            if self._state == 'item_e':
+                inv = game.GAME.inventory
+                txt = inv.on_item_used(inv[self.dialog_res])
+                if txt is not None:
+                    self._state = 'item_ee'
+                else:
+                    self.dialog(txt, 'item_ee')
+            elif self._state == 'item_ee':
+                self._state = 'select'
+                game.GAME.set_state('SELECT')
         if game.GAME.state == 'ATTACK':
             if math.pow(self._attack_display_timer, 2) > min(self.soul_rect.rect.width // 8, 255):
                 self._attack_bar_shower(min(self.soul_rect.rect.width // 8, 255))
@@ -357,6 +401,9 @@ class UI:
                     else:
                         self.soul_rect.exp_rect.left += 200
                         self.soul_rect.exp_rect.width -= 400
+                        dmg = game.GAME.player.on_attack(self._attack_score, game.GAME.monsters[self.target])
+                        if dmg is not None:
+                            self._attack_score = dmg
                         self._attack_score = self._attack_score
                         self._state = 'show_damage'
                         self._damage_timer = 0
@@ -366,7 +413,7 @@ class UI:
                     if self._damage_timer == 5:
                         m.ani.change_animation('hurt')
                     if 5 <= self._damage_timer <= 25:
-                        m.hurt(self._attack_score // 5)
+                        m.hurt(self._attack_score // 10)
                     if self._damage_timer >= 30:
                         self._state = 'select'
                         game.GAME.set_state('SELECT')

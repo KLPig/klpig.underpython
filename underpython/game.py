@@ -13,7 +13,7 @@ class Game:
         if func.__name__ in self.hook.__dir__():
             self.hook.__setattr__(func.__name__, func)
 
-    def __init__(self, _player: player.Player, monsters: list[monster.Monster], waves: list[type(wave.Wave)], resource_path: str = None):
+    def __init__(self, _player: player.Player, monsters: list[monster.Monster], waves: list[type(wave.Wave)], resource_path: str = None, save_enabled: bool = False):
         pg.init()
         self.hook = base.Hooks()
         self.inventory = inventory.Inventory()
@@ -27,7 +27,7 @@ class Game:
         self.state = 'START'
         self.displayer = displayer.Displayer()
         self.st_time: type(time.time())
-        self.ui = displayer.UI()
+        self.ui = displayer.UI(save_enabled)
         self.key_events = []
         self.state = 'SELECT'
         self.tick = 0
