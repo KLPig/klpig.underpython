@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>init</title>
+        <link rel="stylesheet" href="../style.css">
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <h1>.. Let's just start from game first</h1>
+        <code lang="python">class Game:</code>
+        <h2>Variables</h2>
+        <code lang="python"><br>
+ins_wave = 0 # instant or coming wave no.<br>
+hook # hook object<br>
+inventory # inventory object<br>
+player # player object<br>
+monsters # list of monsters<br>
+waves # list of wave types<br>
+graphics # dictionary, use Game.graphics['img-name'] to get the surface of the image<br>
+sounds # dictionary like graphics but for finding sounds<br>
+rp # resources path<br>
+states # available states<br>
+state # state of the game<br>
+displayer # displayer object<br>
+st_time # time when the game go()<br>
+ui # ui object<br>
+key_events # pygame keys that are just pressed in this tick<br>
+tick # tick, the no. of frames passed<br>
+font # pg font object, used for rendering text surfaces.<br>
+route # what route you are now in, include NEUTRAL_ROUTE, GENOCIDE_ROUTE and PACIFIST_ROUTE<br>
+        </code>
+        <h2>Methods</h2>
+        <code lang="python">consturctor(player, monsters, wave_types, resource_path)</code>
+        <p>Arguments:</p>
+        <li>player: the player, to be mentioned later</li>
+        <li>monsters: the list of the monsters since there could be several of them, 
+            to be mentioned later</li>
+        <li>wave_types: list of the type of the inherited classes of wave, which means <i>list[type[wave]]</i>, 
+            for wave, to be mentioned later</li>
+        <li>resource_path: path of resources, it should cotain folders like images and sounds, 
+            where only files(image and sounds) but not directory(further more folders) inside.
+        </li>
+        <code>build()</code>
+        <p>Process two of running a encounter, including loading graphics and sounds.</p>
+        <code>go()</code>
+        <p>When the game was built, use go() to run it.</p>
+        <code>set_state(state)</code>
+        <p>Set the current state to 'state'.</p>
+        <h2>Special</h2>
+        <p>Something called GAME was a object with type underpython.Game, when you defined a Game, use write_game to pass it to the system, e.g:</p>
+        <code lang="python"><br>
+from underpython import *<br>
+
+GAME = Game(...args...) # define the GAME object
+write_game(GAME) # write it to GAME in system
+        </code>
+    </body>
+</html>

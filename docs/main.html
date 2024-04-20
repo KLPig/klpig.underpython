@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>UnderPython</title>
+        <link rel="stylesheet" href="./style.css">
+    </head>
+    <body>
+        <iframe id="frame"></iframe>
+        <div id="menu">
+            <h1 class="inner-menu">Content</h1>
+            <h2 class="inner-menu">Intruduction</h1>
+            <span id="up" class="inner-menu">UnderPython - the undertale encounter mod</span>
+            <span id="inst" class="inner-menu">Installation - download and use it</span>
+            <span id="pk" class="inner-menu">Pre-knowledge - how to read this document?</span>
+            <h2 class="inner-menu">Basics</h2>
+            <span id="init" class="inner-menu">Initialization - what should we do first?</span>
+            <span id="hook" class="inner-menu">Hooks - what if it happens?</span>
+            <span id="game" class="inner-menu">Game - root of all</span>
+            <span id="ani" class="inner-menu">Animations - best graphics manager</span>
+            <span id="dis" class="inner-menu">Displayer - window manager and displayer</span>
+            <h2 class="inner-menu">Data storage</h2>
+            <span id="p" class="inner-menu">Player - the chosen one</span>
+            <span id="m" class="inner-menu">Monsters - your enemies</span>
+            <span id="inv" class="inner-menu">Inventory - what did you get today?</span>
+            <h2 class="inner-menu">Game displays</h2>
+            <span id="ui" class="inner-menu">UI- all in one</span>
+            <span id="sr" class="inner-menu">SoulRect - black filler</span>
+            <h2 class="inner-menu">Projectiles and Dodging</h2>
+            <span id="atk" class="inner-menu">Attack - flying around</span>
+            <span id="soul" class="inner-menu">Soul - keep dodging!</span>
+            <span id="atks" class="inner-menu">Attacks - good conclusion of attack</span>
+            <span id="wave" class="inner-menu">Wave - huge waves of attacks</span>
+            <h2 class="inner-menu">Conclusion</h2>
+            <span id="cred" class="inner-menu">Credits</span>
+        </div>
+        <script>
+            tags = document.getElementsByTagName('span')
+            for(var x = 0; x < 18; x++){
+                t = tags[x]
+                t.addEventListener(
+                    'click',
+                    function(){
+                        window.open(top.location.href.split('#')[0] + '#' + this.id) 
+                        document.getElementById('frame').src = './temp/' + this.id + '.html'
+                    }
+                )
+            }
+            l = top.location.href.split('#')
+            if(l[1] != undefined)
+                document.getElementById('frame').src = './temp/' + l[1] + '.html'
+            else
+                window.open(top.location.href + '#up')        
+            document.getElementById(l[1]).style.color = 'yellow'
+        </script>
+    </body>
+</html>

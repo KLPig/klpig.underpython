@@ -1,0 +1,46 @@
+@font-face {
+    font-family: dtm-sans;
+    src: url('./fonts/8bitOperatorPlus-Bold.ttf');
+}
+
+#menu
+{
+    background-color: black;
+    border: white 5px solid;
+    position: fixed;
+    transition: left;
+    left: 0px;
+    width: 20%;
+    height: 100%;
+    box-sizing: border-box;
+    top: 0px;
+    overflow: auto;
+}
+.inner-menu
+{
+    text-align: center;
+    display: block;
+    margin: 10px;
+}
+:root
+{
+    background-color: black;
+    font-family: dtm-sans;
+    color: white;
+}
+span:hover
+{
+    color: yellow;
+}
+#frame
+{
+    border: 0px;
+    width: 80svw;
+    height: 100svh;
+    top: 0;
+    left: 20svw;
+    position: fixed;
+}
+a{
+    text-decoration: none;
+}

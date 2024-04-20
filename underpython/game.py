@@ -21,11 +21,9 @@ class Game:
         self.player = _player
         self.monsters = monsters
         self.waves = waves
-        self.wave_no = 0
         self.graphics: dict[str, pg.surface.Surface] = {'NULL': pg.surface.Surface((1, 1))}
         self.sounds: dict[str, pg.mixer.Sound] = {}
         self.rp = resource_path
-        self.state = 'START'
         self.displayer = displayer.Displayer()
         self.st_time: type(time.time())
         self.ui = displayer.UI(save_enabled)
