@@ -15,6 +15,7 @@ class Game:
 
     def __init__(self, _player: player.Player, monsters: list[monster.Monster], waves: list[type(wave.Wave)], resource_path: str = None, save_enabled: bool = False):
         pg.init()
+        self.ins_wave = 0
         self.hook = base.Hooks()
         self.inventory = inventory.Inventory()
         self.player = _player
@@ -51,6 +52,7 @@ class Game:
     def build(self):
         self._load_graphics()
         self._load_sounds()
+        self.displayer.set_window()
 
     def go(self):
         self.st_time = time.time()

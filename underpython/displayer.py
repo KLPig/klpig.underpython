@@ -1,6 +1,5 @@
-from underpython import game, attacks
+from underpython import game, attacks, wave
 import pygame as pg
-import underpython.resources as res
 from underpython import animations as ani
 import math
 
@@ -9,9 +8,11 @@ class Displayer:
     def __init__(self):
         self.camera = (0, 0, 0)
         self.window = pg.display.set_mode((640, 480), pg.SCALED | pg.RESIZABLE)
-        pg.display.set_caption('UNDERTALE')
-        pg.display.set_icon(res.icon)
         self.surfaces = [pg.surface.Surface((1280, 960))]
+
+    def set_window(self):
+        pg.display.set_caption('UNDERTALE')
+        pg.display.set_icon(game.GAME.graphics['ui.icon'])
 
     def clear(self):
         for i in range(len(self.surfaces)):
@@ -227,8 +228,9 @@ class UI:
         self.hp_bar_width = min(p.max_hp * 5, 1200 - self.hp_bar_left)
 
     def _draw_states(self):
-        d = game.GAME.displayer[0]
-        p = game.GAME.player
+        gg = game.GAME
+        d = gg.displayer[0]
+        p = gg.player
         for txt, txt_rect, _ in self.texts:
             d.blit(txt, txt_rect)
         hp_bar = pg.rect.Rect(self.hp_bar_left, self.state_y - 25, self.hp_bar_width, 50)
@@ -256,6 +258,8 @@ class UI:
         self._dialog_states = ('', '')
         self.target = 0
         self.dialog_res = ''
+        self.wave: wave.Wave | None = None
+        self.souls = attacks.Souls()
 
     def _attack_bar_shower(self, process: int, swap: bool = False):
         r = self.soul_rect.rect
@@ -307,42 +311,42 @@ class UI:
             self.text_setup = True
         self.soul_rect._update()
 
-        if game.GAME.state == 'SELECT':
+        gg = game.GAME
+        if gg.state == 'SELECT':
             self.soul_rect.exp_rect = pg.rect.Rect(40, 450, 1200, 300)
             if self.buttons[self.selected].instant[0] == 'idle':
                 self.buttons[self.selected].change_animation('selected')
             self._state = 'select'
-            if pg.K_LEFT in game.GAME.key_events:
+            if pg.K_LEFT in gg.key_events:
                 self.buttons[self.selected].change_animation('idle')
                 self.selected = (self.selected + 3) % 4
                 self.buttons[self.selected].change_animation('selected')
-            elif pg.K_RIGHT in game.GAME.key_events:
+            elif pg.K_RIGHT in gg.key_events:
                 self.buttons[self.selected].change_animation('idle')
                 self.selected = (self.selected + 1) % 4
                 self.buttons[self.selected].change_animation('selected')
-            elif pg.K_z in game.GAME.key_events:
+            elif pg.K_z in gg.key_events:
                 if self.selected == 0:
-                    game.GAME.set_state('ATTACK')
+                    gg.set_state('ATTACK')
                     self._state = 'atk_choosing'
                     names = []
-                    for m in game.GAME.monsters:
+                    for m in gg.monsters:
                         names.append(m.name)
                     self.choose(names, 'show_bg')
                     self._attack_display_timer = 0
                     self._attack_bars = []
                 elif self.selected == 1:
-                    game.GAME.set_state('ACT')
+                    gg.set_state('ACT')
                     self._state = 'act_mc'
                     names = []
-                    for m in game.GAME.monsters:
+                    for m in gg.monsters:
                         names.append(m.name)
                     self.choose(names, 'act_pac')
                 elif self.selected == 2:
-                    if len(game.GAME.inventory.inventory):
-                        game.GAME.set_state('ACT')
+                    if len(gg.inventory.inventory):
+                        gg.set_state('ACT')
                         self._state = 'item_ic'
-                        self.choose(game.GAME.inventory.inventory, 'item_e')
-
+                        self.choose(gg.inventory.inventory, 'item_e')
 
         else:
             for button in self.buttons:
@@ -354,33 +358,34 @@ class UI:
         self._update_states()
         self._draw_states()
 
-        if game.GAME.state == 'ACT':
+        if self._state.endswith('_ee'):
+            self._state = 'soul'
+            gg.set_state('SOUL')
+            self.wave = gg.waves[gg.ins_wave]()
+            gg.hook.on_wave_start(self.wave)
+            self.wave.on_wave_start()
+
+        if gg.state == 'ACT':
             if self._state == 'act_pac':
                 self._state = 'act_ac'
                 self.target = self.dialog_res
-                self.choose(game.GAME.monsters[self.target].acts, 'act_e')
+                self.choose(gg.monsters[self.target].acts, 'act_e')
             elif self._state == 'act_e':
-                m = game.GAME.monsters[self.target]
+                m = gg.monsters[self.target]
                 txt = m.on_act(m.acts[self.dialog_res])
                 if txt is not None:
                     self.dialog(txt, 'act_ee')
                 else:
                     self._state = 'act_ee'
-            elif self._state == 'act_ee':
-                self._state = 'select'
-                game.GAME.set_state('SELECT')
-        elif game.GAME.state == 'ITEM':
+        elif gg.state == 'ITEM':
             if self._state == 'item_e':
-                inv = game.GAME.inventory
+                inv = gg.inventory
                 txt = inv.on_item_used(inv[self.dialog_res])
                 if txt is not None:
                     self._state = 'item_ee'
                 else:
                     self.dialog(txt, 'item_ee')
-            elif self._state == 'item_ee':
-                self._state = 'select'
-                game.GAME.set_state('SELECT')
-        if game.GAME.state == 'ATTACK':
+        if gg.state == 'ATTACK':
             if math.pow(self._attack_display_timer, 2) > min(self.soul_rect.rect.width // 8, 255):
                 self._attack_bar_shower(min(self.soul_rect.rect.width // 8, 255))
                 if self._state == 'show_bg':
@@ -394,29 +399,28 @@ class UI:
                         self._attack_bars[i] = \
                             (self._attack_bars[i][0] + self._attack_bars[i][1], self._attack_bars[i][1])
                     if self._attack_bars[0][1]:
-                        if abs(self._attack_bars[0][0] - 640) > 650 or pg.K_z in game.GAME.key_events:
+                        if abs(self._attack_bars[0][0] - 640) > 650 or pg.K_z in gg.key_events:
                             self._attack_score += int(math.sqrt(500 - min(abs(self._attack_bars[0][0] - 640), 500)))
                             self._attack_bars.append((self._attack_bars[0][0], 0))
                             self._attack_bars.pop(0)
                     else:
                         self.soul_rect.exp_rect.left += 200
                         self.soul_rect.exp_rect.width -= 400
-                        dmg = game.GAME.player.on_attack(self._attack_score, game.GAME.monsters[self.target])
+                        dmg = gg.player.on_attack(self._attack_score, gg.monsters[self.target])
                         if dmg is not None:
                             self._attack_score = dmg
                         self._attack_score = self._attack_score
                         self._state = 'show_damage'
                         self._damage_timer = 0
                 elif self._state == 'show_damage':
-                    m = game.GAME.monsters[self.target]
-                    d = game.GAME.displayer[0]
+                    m = gg.monsters[self.target]
+                    d = gg.displayer[0]
                     if self._damage_timer == 5:
                         m.ani.change_animation('hurt')
                     if 5 <= self._damage_timer <= 25:
                         m.hurt(self._attack_score // 10)
                     if self._damage_timer >= 30:
-                        self._state = 'select'
-                        game.GAME.set_state('SELECT')
+                        self._state = 'attack_ee'
                     else:
                         self._damage_timer += 1
                         rect = pg.rect.Rect((0, 0, 400, 50))
@@ -428,12 +432,22 @@ class UI:
                 self._attack_bar_shower(int(math.pow(self._attack_display_timer, 2)))
                 self._attack_display_timer += 1
         else:
-            pg.draw.rect(game.GAME.displayer[0], (0, 0, 0), self.soul_rect.rect)
-            pg.draw.rect(game.GAME.displayer[0], (255, 255, 255), self.soul_rect.rect, 8)
+            pg.draw.rect(gg.displayer[0], (0, 0, 0), self.soul_rect.rect)
+            pg.draw.rect(gg.displayer[0], (255, 255, 255), self.soul_rect.rect, 8)
+
+        if gg.state == 'SOUL':
+            self.souls.get_now().update()
+            w = self.wave
+            w._update()
+            if w.end:
+                gg.set_state('SELECT')
+                self._state = 'select'
+
+        game.GAME.player.update()
 
         if self._dialog is not None:
             if self._dialog.end:
-                self._state, game.GAME.state = self._dialog_states
+                self._state, gg.state = self._dialog_states
                 self.dialog_res = self._dialog.res
                 del self._dialog
                 self._dialog = None
