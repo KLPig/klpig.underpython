@@ -22,7 +22,8 @@ class Player:
             raise base.UnderPythonError(f'Undefined hook "{func.__name__}"',
                                     [self.events, func])
 
-    def on_attack(self, damage: int, target: monster.Monster) -> int | None: pass
+    def on_attack(self, damage: int, target: monster.Monster) -> int | None:
+        return damage * max(self.at * 5 - target.df * 3, 0) // 3
 
     def on_act(self, name: str, target: monster.Monster): pass
 
@@ -39,6 +40,7 @@ class Player:
 
     def hurt(self, hp: int):
         self.hp = max(min(self.hp - hp, self.max_hp), 0)
+
 
     def st_wd(self):
         self.wd = self.wdt

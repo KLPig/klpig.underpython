@@ -1,4 +1,4 @@
-from underpython import game, attacks, wave
+from underpython import game, attacks, wave, base
 import pygame as pg
 from underpython import animations as ani
 import math
@@ -44,7 +44,7 @@ class UI:
     class dialoger:
         args = ['no-skip', 'tpc', 'color']
 
-        def __init__(self, string: str, kwargs):
+        def __init__(self, string: str, left, kwargs):
             game.GAME.ui.soul_rect.exp_rect = pg.rect.Rect(40, 450, 1200, 300)
             self.arg = {'no_skip': False, 'tpc': 0, 'color': (255, 255, 255)}
             self.left = 50
@@ -56,6 +56,7 @@ class UI:
             cmd = ''
             writing_cmd = False
             self.tasks = []
+            self.l_left = left
             self.idx = 0
             self._timer = 0
             self.texts = ['* ']
@@ -63,7 +64,6 @@ class UI:
             self.end = False
             self.res = False
             for c in string:
-                print(c)
                 if c == ']':
                     writing_cmd = False
                     self.tasks.append('[[' + cmd)
@@ -95,14 +95,22 @@ class UI:
             return self.idx >= len(self.tasks)
 
         def update(self):
+            r = game.GAME.ui.soul_rect.rect
+            top = r.top + 10
+            for text in self.texts:
+                txt = game.GAME.font.render(text, True, self.arg['color'])
+                txt_rect = txt.get_rect()
+                txt_rect.topleft = (r.left + self.left, top)
+                game.GAME.displayer().blit(txt, txt_rect)
+                top += 100
             if self.end:
-                return
-            if self._timer > 0:
-                self._timer -= 1
                 return
             if pg.K_x in game.GAME.key_events and not self.arg['no_skip']:
                 while not self.process():
                     pass
+            if self._timer > 0:
+                self._timer -= 1
+                return
             if self.process():
                 if pg.K_z in game.GAME.key_events:
                     self.res = True
@@ -110,14 +118,6 @@ class UI:
                     return
             else:
                 self._timer = self.arg['tpc']
-            r = game.GAME.ui.soul_rect.rect
-            top = r.top + 50
-            for text in self.texts:
-                txt = game.GAME.font.render(text, True, self.arg['color'])
-                txt_rect = txt.get_rect()
-                txt_rect.topleft = (r.left + self.left, top)
-                game.GAME.displayer().blit(txt, txt_rect)
-                top += 120
 
     class selector(dialoger):
         args = ['color']
@@ -133,6 +133,7 @@ class UI:
             self._pos = 0
             self._dir = 0
             self.sr = []
+            self.l_left = []
             self.first = True
             r = game.GAME.ui.soul_rect.exp_rect
             r.width = 400
@@ -290,7 +291,15 @@ class UI:
                 f = not f
 
     def dialog(self, string: str, end_state='self', **kwargs):
-        self._dialog = self.dialoger(string, kwargs)
+        self._dialog = self.dialoger(string, [], kwargs)
+        self._dialog_states = self._state, game.GAME.state
+        if end_state != 'self':
+            self._dialog_states = end_state, game.GAME.state
+        self._state = 'dialog'
+        game.GAME.set_state('DIALOG')
+
+    def dialogs(self, strings: list[str], end_state='self', **kwargs):
+        self._dialog = self.dialoger(strings[0], strings[1: ], kwargs)
         self._dialog_states = self._state, game.GAME.state
         if end_state != 'self':
             self._dialog_states = end_state, game.GAME.state
@@ -344,9 +353,14 @@ class UI:
                     self.choose(names, 'act_pac')
                 elif self.selected == 2:
                     if len(gg.inventory.inventory):
-                        gg.set_state('ACT')
-                        self._state = 'item_ic'
+                        gg.set_state('ITEM')
+                        self._state = 'item_e'
                         self.choose(gg.inventory.inventory, 'item_e')
+                else:
+                    for m in gg.monsters:
+                        if m.spare_able:
+                            m.defeat = base.PACIFIST_ROUTE
+
 
         else:
             for button in self.buttons:
@@ -374,17 +388,20 @@ class UI:
                 m = gg.monsters[self.target]
                 txt = m.on_act(m.acts[self.dialog_res])
                 if txt is not None:
-                    self.dialog(txt, 'act_ee')
+                    self.dialogs(txt, 'act_ee')
                 else:
                     self._state = 'act_ee'
         elif gg.state == 'ITEM':
             if self._state == 'item_e':
                 inv = gg.inventory
-                txt = inv.on_item_used(inv[self.dialog_res])
+                name = inv.inventory[self.dialog_res]
+                txt = inv.on_item_used(name)
+                if not inv.items[name]:
+                    inv.inventory.remove(name)
                 if txt is not None:
-                    self._state = 'item_ee'
+                    self.dialogs(txt, 'item_ee')
                 else:
-                    self.dialog(txt, 'item_ee')
+                    self._state = 'item_ee'
         if gg.state == 'ATTACK':
             if math.pow(self._attack_display_timer, 2) > min(self.soul_rect.rect.width // 8, 255):
                 self._attack_bar_shower(min(self.soul_rect.rect.width // 8, 255))
@@ -442,15 +459,30 @@ class UI:
             if w.end:
                 gg.set_state('SELECT')
                 self._state = 'select'
+                gg.hook.on_wave_end(w)
 
-        game.GAME.player.update()
+        gg.player.update()
 
         if self._dialog is not None:
             if self._dialog.end:
+                if len(self._dialog.l_left) > 1:
+                    self._dialog = self.dialoger(self._dialog.l_left[0],
+                                                 self._dialog.l_left[1:],
+                                                 self._dialog.arg)
+                    return
+                elif len(self._dialog.l_left):
+                    self._dialog = self.dialoger(self._dialog.l_left[0], [],
+                                                 self._dialog.arg)
+                    return
                 self._state, gg.state = self._dialog_states
                 self.dialog_res = self._dialog.res
                 del self._dialog
                 self._dialog = None
             else:
+                if type(self._dialog) is self.selector and pg.K_x in gg.key_events:
+                    gg.set_state('SELECT')
+                    self._state = 'select'
+                    del self._dialog
+                    self._dialog = None
+                    return
                 self._dialog.update()
-

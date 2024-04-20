@@ -4,7 +4,7 @@ from underpython import base
 class Inventory:
     hooks = ['on_item_used', 'on_update']
 
-    def on_item_used(self, item_name: str) -> str | None:
+    def on_item_used(self, item_name: str) -> list[str] | None:
         pass
 
     def on_update(self):
@@ -19,14 +19,14 @@ class Inventory:
 
     def __init__(self):
         self.inventory = []
-        self.items = [('NULL', True)]
+        self.items = {'NULL': True}
 
     def set_item(self, name: str, infinity: bool):
-        self.items.append((name, infinity))
+        self.items[name] = infinity
 
     def set_inventory(self, invent:list[str]):
         for t in invent:
-            if t not in self.items:
+            if t not in self.items.keys():
                 raise base.UnderPythonError(f'Unknown item: {t}',
                                        [self.set_inventory, invent])
         self.inventory = invent

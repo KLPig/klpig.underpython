@@ -49,9 +49,9 @@ class GameMethod(Constant):
     pass
 
 
-MERCY_ROUTE = GameMethod(2)
+PACIFIST_ROUTE = GameMethod(2)
 GENOCIDE_ROUTE = GameMethod(3)
-NORMAL_ROUTE = GameMethod(4)
+NEUTRAL_ROUTE = GameMethod(4)
 
 
 class Hooks:

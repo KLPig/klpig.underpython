@@ -13,11 +13,19 @@ class Monster:
         self.df = df
         self.acts = ['check']
         self.acts.extend(act_options)
+        self.spare_able = False
+        self.defeat: base.GameMethod | None = None
 
     def hurt(self, damage: int):
+        if self.defeat is not None:
+            return
         self.hp = max(self.hp - damage, 0)
+        if not self.hp:
+            self.defeat = base.GENOCIDE_ROUTE
 
     def heal(self, num: int):
+        if self.defeat is not None:
+            return
         self.hp = min(self.hp + num, self.max_hp)
 
     def events(self, func):
@@ -25,7 +33,7 @@ class Monster:
             setattr(self, func.__name__, func)
         else:
             raise base.UnderPythonError(f'Undefined hook "{func.__name__}"',
-                                    [self.events, func])
+                                        [self.events, func])
 
-    def on_act(self, name: str) -> str | None:
+    def on_act(self, name: str) -> list[str] | None:
         pass

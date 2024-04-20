@@ -7,7 +7,7 @@ import sys
 
 class Game:
     Ts = 30
-    states = ['SELECT', 'FIGHT', 'ACT', 'ITEM', 'MERCY', 'SAVE', 'ATTACK', 'DIALOG', 'SOUL']
+    states = ['SELECT', 'FIGHT', 'ACT', 'ITEM', 'MERCY', 'SAVE', 'ATTACK', 'DIALOG', 'SOUL', 'END']
 
     def set_event(self, func):
         if func.__name__ in self.hook.__dir__():
@@ -33,6 +33,7 @@ class Game:
         self.state = 'SELECT'
         self.tick = 0
         self.font = pg.font.SysFont('dtm-sans', 75)
+        self.route: base.GameMethod | None = None
 
     def _load_graphics(self):
         path = os.path.join(self.rp, 'images')
@@ -60,16 +61,38 @@ class Game:
         self._loop()
 
     def _update(self, tick: int):
+        if self.ui._state == 'end_game':
+            pg.quit()
+            sys.exit()
         self.tick = tick
         self.displayer.clear()
         self.key_events = []
         for event in pg.event.get():
             if event.type == pg.QUIT:
+                self.hook.on_game_quit()
                 pg.quit()
                 sys.exit()
             elif event.type == pg.KEYDOWN:
                 self.key_events.append(event.key)
+        if self.player.hp == 0 and self.state != 'END':
+            self.ui.dialogs(['GAME OVER[endl]Do not loose hope!', '%s, [endl]stay determined!' % self.player.name], 'end_game', no_skip=True, tpc=10)
+            self.hook.on_game_lost()
+            self.set_state('END')
         for enemy in self.monsters:
+            if enemy.defeat is not None:
+                if self.route is None:
+                    self.route = enemy.defeat
+                elif self.route != enemy.defeat:
+                    self.route = base.NEUTRAL_ROUTE
+                self.monsters.remove(enemy)
+                if not len(self.monsters):
+                    self.hook.on_game_won(self.route)
+                    if self.route is base.GENOCIDE_ROUTE:
+                        self.ui.dialog('You won. =)', 'end_game', color=(255, 0, 0))
+                    else:
+                        self.ui.dialog('You won.', 'end_game')
+                    self.set_state('END')
+                continue
             enemy.ani._update()
         self.ui._update()
         self.displayer._update()
