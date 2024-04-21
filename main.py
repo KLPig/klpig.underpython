@@ -2,42 +2,27 @@ from underpython import *
 import os
 import random
 
-player = Player('Frisk', 20, 8, 24, 1)
+player = Player('Frisk', 20, 15, 20, 1)
 flowery_ani = Animations((640, 240), 4, tpf=5)
-flowery_ani.add_animation('idle', [
-    'monsters.flowery.idle.1',
-    'monsters.flowery.idle.2',
-    'monsters.flowery.idle.3',
-    'monsters.flowery.idle.4',
-    'monsters.flowery.idle.5',
-    'monsters.flowery.idle.6',
-    'monsters.flowery.idle.7',
-    'monsters.flowery.idle.6',
-    'monsters.flowery.idle.5',
-    'monsters.flowery.idle.4',
-    'monsters.flowery.idle.3',
-    'monsters.flowery.idle.2',
-    'monsters.flowery.idle.1',
-                          ])
+flowery_ani.add_animation('idle',
+                          ['monsters.flowery.idle.%d' % i for i in [1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1]])
 flowery_ani.add_animation('hurt',
-                          [
-                              'monsters.flowery.idle.1',
-                              'monsters.flowery.idle.1',
-                              'monsters.flowery.idle.1',
-                              'monsters.flowery.idle.1'
-                          ], nxt='idle')
+                          ['monsters.flowery.idle.1' for i in range(4)], nxt='idle')
 flowery_ani.change_animation('idle')
-flowery = Monster(flowery_ani, 'flowery', 500, 15, 10,
-                  ['say'])
+flowery = Monster(flowery_ani, 'flowery', 5000, 15, 15,
+                  ['hopes', 'dreams'])
 
 
 @flowery.events
 def on_act(name: str) -> list[str] | None:
     if name == 'check':
-        return ['Flowery, 15 at 15 df.[endl]Your best friend.']
-    elif name == 'say':
-        flowery.spare_able = True
-        return ['You said hi to flowery.', 'Flowery is now spare-able!']
+        return ['Flowery, 15 at 15 df.[endl]The loast princess.']
+    elif name == 'hopes':
+        player.df += 3
+        return ['You thought about why you\'re [nxtl]here, ', 'Defense greatly increased!!']
+    elif name == 'dreams':
+        player.heal(20)
+        return ['You closed your eyes, ', 'Thinking about what you [nxtl]are looking for', 'HP fully recovered!']
 
 
 monsters = [flowery]
@@ -50,16 +35,91 @@ class Fb(Attack):
 
 class FbRise(Fb):
     def on_action(self):
-        self.u_ani()
         if self.tick > 40:
-            self.move_forward(40)
+            self.move_forward(20 + self.tick // 2)
         elif self.tick == 40:
             self.face_to(GAME.ui.souls.get_now().pos)
         else:
-            self.move_pos((0, -20))
+            self.move_pos((0, -40 + self.tick))
+        self.u_ani()
 
 
-class BulletTwice(Wave):
+class FbRhb(FbRise):
+    def on_action(self):
+        r = GAME.ui.soul_rect.rect
+        if self.tick > 65:
+            self.move_forward(20 + self.tick // 2)
+            if self.pos[1] > r.bottom:
+                chanel.Chanel.play(GAME.sounds['hitsound'])
+                self.remove_atk()
+        elif self.tick == 65:
+            chanel.Chanel.play(GAME.sounds['toss'])
+            self.face_to((random.randint(r.left, r.right), r.bottom))
+        else:
+            self.move_pos((0, -45 + self.tick))
+        self.u_ani()
+
+
+class FbD(Fb):
+    def on_action(self):
+        self.move_forward(10 + self.tick // 2)
+        self.u_ani()
+
+
+class FbS(Fb):
+    def set_r(self, r):
+        self.set_attribute(r=r)
+
+    def on_action(self):
+        rot = (self.get_attribute('r') + self.tick * 10) % 360
+        # print(rot, self.tick)
+        self.set_pos(GAME.ui.soul_rect.rect.center)
+        self.set_rotation(rot)
+        self.move_forward(400 - self.tick * 10)
+        if self.tick >= 40:
+            self.remove_atk()
+        self.u_ani()
+        self.set_rotation(0)
+
+
+class BulletRiser(Wave):
+    def on_wave_start(self):
+        game.GAME.ui.soul_rect.exp_rect.__init__(540, 500, 200, 200)
+        self.attacks.append(attacks.Attacks(GAME.monsters[0]))
+        GAME.ui.souls.get_now().set_pos(GAME.ui.soul_rect.rect.center)
+
+    def on_wave_update(self):
+        for atk in self.attacks:
+            atk.update()
+        if self.tick % 20 == 1:
+            self.attacks[0].add(FbRise((random.randint(0, 200), random.randint(1000, 1500)), game.GAME.graphics['pj.attack.fb.idle.1']))
+        elif self.tick % 20 == 11:
+            self.attacks[0].add(FbRise((random.randint(1080, 1280), random.randint(1000, 1500)), game.GAME.graphics['pj.attack.fb.idle.1']))
+        if self.tick >= 200:
+            self.end_wave()
+
+
+class BulletSpin(Wave):
+
+    def on_wave_start(self):
+        game.GAME.ui.soul_rect.exp_rect.__init__(490, 350, 300, 300)
+        self.attacks.append(attacks.Attacks(GAME.monsters[0]))
+        GAME.ui.souls.get_now().set_pos(GAME.ui.soul_rect.rect.center)
+
+    def on_wave_update(self):
+        for atk in self.attacks:
+            atk.update()
+        if self.tick % 30 == 1:
+            r = random.randint(0, 359)
+            for i in range(r, r + 179, 15):
+                atk = FbS((0, 0), GAME.graphics['pj.attack.fb.idle.1'])
+                atk.set_r(i % 360)
+                self.attacks[0].add(atk)
+        if self.tick >= 200:
+            self.end_wave()
+
+
+class BulletRiserOver(Wave):
     def on_wave_start(self):
         game.GAME.ui.soul_rect.exp_rect.__init__(440, 300, 400, 400)
         self.attacks.append(attacks.Attacks(GAME.monsters[0]))
@@ -68,29 +128,169 @@ class BulletTwice(Wave):
     def on_wave_update(self):
         for atk in self.attacks:
             atk.update()
-        if self.tick % 7 == 1:
-            self.attacks[0].add(FbRise((random.randint(0, 200), random.randint(1000, 1500)), game.GAME.graphics['pj.attack.fb.idle.1']))
-            self.attacks[0].add(FbRise((random.randint(1080, 1280), random.randint(1000, 1500)), game.GAME.graphics['pj.attack.fb.idle.1']))
+        if self.tick % 15 == 1:
+            for i in range(2):
+                self.attacks[0].add(FbRise((random.randint(200, 1080), random.randint(900, 1000)), game.GAME.graphics['pj.attack.fb.idle.1']))
         if self.tick >= 200:
             self.end_wave()
 
 
-class BulletOnce(Wave):
+class BulletShoot(Wave):
+    def __init__(self):
+        super().__init__()
+        self.tgt = 0
+
     def on_wave_start(self):
-        game.GAME.ui.soul_rect.exp_rect.__init__(590, 200, 100, 600)
+        game.GAME.ui.soul_rect.exp_rect.__init__(440, 560, 400, 200)
         self.attacks.append(attacks.Attacks(GAME.monsters[0]))
         GAME.ui.souls.get_now().set_pos(GAME.ui.soul_rect.rect.center)
 
     def on_wave_update(self):
         for atk in self.attacks:
             atk.update()
-        if self.tick % 3 == 1:
-            self.attacks[0].add(FbRise((random.randint(0, 200), random.randint(1000, 1500)), game.GAME.graphics['pj.attack.fb.idle.1']))
+        if self.tick % 20 == 1:
+            self.tgt = random.randint(240, 1040)
+            if self.tick == 181:
+                self.tgt = 640
+        elif self.tick % 20 < 12:
+            flowery_ani.set_pos(((flowery_ani.pos[0] + self.tgt) // 2, flowery_ani.pos[1]))
+        else:
+            a_s = []
+            if self.tick % 5 == 1:
+                a_s = [-30, 0, 30]
+            elif self.tick % 5 == 3:
+                a_s = [-15, 15]
+            for a in a_s:
+                atk = FbD(flowery_ani.pos, GAME.graphics['pj.attack.fb.idle.1'])
+                atk.face_to(GAME.ui.souls.get_now().pos)
+                atk.rotate(a)
+                self.attacks[0].add(atk)
         if self.tick >= 200:
             self.end_wave()
 
 
-waves = [BulletOnce, BulletTwice]
+class BulletMixed(Wave):
+    def __init__(self):
+        super().__init__()
+        self.tgt = 0
+
+    def on_wave_start(self):
+        GAME.ui.soul_rect.exp_rect.__init__(390, 300, 500, 400)
+        self.attacks.append(attacks.Attacks(GAME.monsters[0]))
+        GAME.ui.souls.get_now().set_pos(GAME.ui.soul_rect.rect.center)
+
+    def on_wave_update(self):
+        for atk in self.attacks:
+            atk.update()
+        if self.tick % 30 == 21:
+            for i in range(2):
+                self.attacks[0].add(FbRise((random.randint(100, 1180), random.randint(900, 1000)), game.GAME.graphics['pj.attack.fb.idle.1']))
+        if self.tick >= 200:
+            self.end_wave()
+        for atk in self.attacks:
+            atk.update()
+        if self.tick % 30 == 1:
+            self.tgt = random.randint(240, 1040)
+            if self.tick == 271:
+                self.tgt = 640
+        elif self.tick % 30 < 12:
+            flowery_ani.set_pos(((flowery_ani.pos[0] + self.tgt) // 2, flowery_ani.pos[1]))
+        elif self.tick % 30 < 16:
+            pass
+        else:
+            a_s = []
+            if self.tick % 10 == 2:
+                a_s = [-60, -30, 0, 30, 60]
+            elif self.tick % 10 == 6:
+                a_s = [-45, -15, 15, 45]
+            for a in a_s:
+                atk = FbD(flowery_ani.pos, GAME.graphics['pj.attack.fb.idle.1'])
+                atk.face_to(GAME.ui.souls.get_now().pos)
+                atk.rotate(a)
+                self.attacks[0].add(atk)
+        if self.tick >= 300:
+            self.end_wave()
+
+    def on_wave_end(self):
+        flowery_ani.pos = (640, 240)
+
+
+class BulletShootFast(BulletShoot):
+    def on_wave_update(self):
+        for atk in self.attacks:
+            atk.update()
+        if self.tick % 10 == 1:
+            self.tgt = random.randint(240, 1040)
+            if self.tick == 181:
+                self.tgt = 640
+        elif self.tick % 10 < 9:
+            flowery_ani.set_pos(((flowery_ani.pos[0] + self.tgt) // 2, flowery_ani.pos[1]))
+        else:
+            for a in [-30, 0, 30]:
+                atk = FbD(flowery_ani.pos, GAME.graphics['pj.attack.fb.idle.1'])
+                atk.face_to(GAME.ui.souls.get_now().pos)
+                atk.rotate(a)
+                self.attacks[0].add(atk)
+        if self.tick >= 200:
+            self.end_wave()
+
+
+class BottomShooter(Wave):
+    def on_wave_start(self):
+        game.GAME.ui.soul_rect.exp_rect.__init__(540, 530, 200, 100)
+        self.attacks.append(attacks.Attacks(GAME.monsters[0]))
+        GAME.ui.souls.get_now().set_pos(GAME.ui.soul_rect.rect.center)
+
+    def on_wave_update(self):
+        for atk in self.attacks:
+            atk.update()
+        if self.tick % 20 == 1:
+            self.attacks[0].add(FbRhb((random.randint(0, 640), random.randint(1000, 1200)), game.GAME.graphics['pj.attack.fb.idle.1']))
+        elif self.tick % 20 == 11:
+            self.attacks[0].add(FbRhb((random.randint(640, 1280), random.randint(1000, 1200)), game.GAME.graphics['pj.attack.fb.idle.1']))
+        if self.tick >= 200:
+            self.end_wave()
+
+
+class MixShooter(BottomShooter):
+    def on_wave_start(self):
+        game.GAME.ui.soul_rect.exp_rect.__init__(490, 500, 300, 200)
+        self.attacks.append(attacks.Attacks(GAME.monsters[0]))
+        GAME.ui.souls.get_now().set_pos(GAME.ui.soul_rect.rect.center)
+
+    def on_wave_update(self):
+        for atk in self.attacks:
+            atk.update()
+        if self.tick % 10 == 1:
+            self.attacks[0].add(FbRise((random.randint(400, 880), random.randint(1500, 1700)), game.GAME.graphics['pj.attack.fb.idle.1']))
+            if random.randint(0, 1):
+                self.attacks[0].add(FbRhb((random.randint(0, 400), random.randint(1000, 1200)), game.GAME.graphics['pj.attack.fb.idle.1']))
+            else:
+                self.attacks[0].add(FbRhb((random.randint(880, 1280), random.randint(1000, 1200)), game.GAME.graphics['pj.attack.fb.idle.1']))
+        if self.tick >= 200:
+            self.end_wave()
+
+
+class Hurricane(BottomShooter):
+    def on_wave_start(self):
+        game.GAME.ui.soul_rect.exp_rect.__init__(390, 500, 500, 200)
+        self.attacks.append(attacks.Attacks(GAME.monsters[0]))
+        GAME.ui.souls.get_now().set_pos(GAME.ui.soul_rect.rect.center)
+
+    def on_wave_update(self):
+        for atk in self.attacks:
+            atk.update()
+        if self.tick % 5 == 1:
+            if random.randint(0, 1):
+                self.attacks[0].add(FbRhb((random.randint(0, 400), random.randint(1000, 1200)), game.GAME.graphics['pj.attack.fb.idle.1']))
+            else:
+                self.attacks[0].add(FbRhb((random.randint(880, 1280), random.randint(1000, 1200)), game.GAME.graphics['pj.attack.fb.idle.1']))
+        if self.tick >= 300:
+            self.end_wave()
+
+
+waves = [BulletRiser, BulletShoot, BulletRiserOver, BulletSpin, BulletMixed, BulletShootFast,
+         BottomShooter, MixShooter, Hurricane]
 
 GAME = Game(player, monsters, waves, os.path.join(os.path.dirname(__file__), 'resources'))
 write_game(GAME)
@@ -101,26 +301,28 @@ GAME.build()
 
 @GAME.set_event
 def on_wave_end(wave):
-    GAME.ins_wave = random.randint(0, 1)
+    GAME.player.df = 20
+    GAME.ins_wave = (GAME.ins_wave + 1) % len(waves)
 
 
-GAME.inventory.set_item('coffee', True)
-GAME.inventory.set_item('candy', False)
-GAME.inventory.set_inventory(['candy', 'candy', 'candy', 'candy', 'candy', 'coffee'])
+GAME.inventory.set_item('last dream', False)
+GAME.inventory.set_inventory(['last dream' for i in range(8)])
 
 
 @GAME.inventory.events
 def on_item_used(item_name: str) -> list[str] | None:
-    if item_name == 'candy':
+    if item_name == 'last dream':
         GAME.player.heal(20)
-        return ['You had a nice time on the candy.', 'HP fully restored!']
-    elif item_name == 'coffee':
-        hp = random.randint(-2, 5)
-        GAME.player.heal(hp)
-        if hp <= 0:
-            return ['You had some bad coffee.', 'Disgusting!', 'You loss you hp!']
-        else:
-            return ['You had some coffee.', 'Not so bad!', 'You got %d hp!' % hp]
+        GAME.player.hp = 50
+        return ['Your last hopes, [endl]Your last dreams,', 'Your determination..', 'Your HP maxed out!', 'You got extra 30 hp!']
+
+
+@GAME.ui.attack_bars
+def atk():
+    tmp = []
+    for i in range(4):
+        tmp.append((-i * 200, 50))
+    return tmp
 
 
 MChanel.play(GAME.sounds['mus_flowery'])

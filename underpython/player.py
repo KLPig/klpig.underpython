@@ -49,8 +49,7 @@ class Player:
             chanel.Chanel.play(gg.sounds['healsound'])
         elif hp > 0:
             chanel.Chanel.play(gg.sounds['hurtsound'])
-        self.hp = max(min(self.hp - hp, self.max_hp), 0)
-
+        self.hp = max(self.hp - hp, 0)
 
     def st_wd(self):
         self.wd = self.wdt

@@ -86,6 +86,9 @@ class UI:
                 if cmd == 'endl':
                     self.texts.append('* ')
                     self.line += 1
+                elif cmd == 'nxtl':
+                    self.texts.append('')
+                    self.line += 1
                 self.idx += 1
                 if self.idx >= len(self.tasks):
                     return True
@@ -364,6 +367,7 @@ class UI:
                     for m in gg.monsters:
                         if m.spare_able:
                             m.defeat = base.PACIFIST_ROUTE
+                    self._state = 'spare_ee'
         else:
             for button in self.buttons:
                 button.change_animation('idle')

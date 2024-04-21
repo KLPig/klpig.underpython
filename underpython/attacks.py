@@ -91,15 +91,12 @@ class Attack:
         for k, v in kwargs.items():
             self.attr[k] = v
 
-    def get_attribute(self, **args):
-        tmp = []
-        for k in args.items():
-            if k in self.attr.keys():
-                tmp.append(self.attr[k[0]])
-            else:
-                raise base.UnderPythonError('Invalid key while getting attribute',
-                                            [self, k, self.get_attribute])
-        return tmp
+    def get_attribute(self, name):
+        if name in self.attr.keys():
+            return self.attr[name]
+        else:
+            raise base.UnderPythonError('Invalid key while getting attribute',
+                                        [self, name, self.get_attribute])
 
     def remove_atk(self):
         self.remove = True
