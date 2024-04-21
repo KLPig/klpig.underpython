@@ -1,4 +1,4 @@
-from underpython import game, attacks, wave, base
+from underpython import game, attacks, wave, base, font, chanel
 import pygame as pg
 from underpython import animations as ani
 import math
@@ -261,6 +261,7 @@ class UI:
         self.dialog_res = ''
         self.wave: wave.Wave | None = None
         self.souls = attacks.Souls()
+        self.dmg_font = font.Font()
 
     def _attack_bar_shower(self, process: int, swap: bool = False):
         r = self.soul_rect.rect
@@ -327,14 +328,17 @@ class UI:
                 self.buttons[self.selected].change_animation('selected')
             self._state = 'select'
             if pg.K_LEFT in gg.key_events:
+                chanel.Chanel.play(gg.sounds['menumove'])
                 self.buttons[self.selected].change_animation('idle')
                 self.selected = (self.selected + 3) % 4
                 self.buttons[self.selected].change_animation('selected')
             elif pg.K_RIGHT in gg.key_events:
+                chanel.Chanel.play(gg.sounds['menumove'])
                 self.buttons[self.selected].change_animation('idle')
                 self.selected = (self.selected + 1) % 4
                 self.buttons[self.selected].change_animation('selected')
             elif pg.K_z in gg.key_events:
+                chanel.Chanel.play(gg.sounds['menuconfirm'])
                 if self.selected == 0:
                     gg.set_state('ATTACK')
                     self._state = 'atk_choosing'
@@ -360,8 +364,6 @@ class UI:
                     for m in gg.monsters:
                         if m.spare_able:
                             m.defeat = base.PACIFIST_ROUTE
-
-
         else:
             for button in self.buttons:
                 button.change_animation('idle')
@@ -432,9 +434,11 @@ class UI:
                 elif self._state == 'show_damage':
                     m = gg.monsters[self.target]
                     d = gg.displayer[0]
-                    if self._damage_timer == 5:
+                    if self._damage_timer == 1:
+                        chanel.Chanel.play(gg.sounds['hitsound'])
+                    elif self._damage_timer == 4:
                         m.ani.change_animation('hurt')
-                    if 5 <= self._damage_timer <= 25:
+                    elif 5 <= self._damage_timer <= 25:
                         m.hurt(self._attack_score // 10)
                     if self._damage_timer >= 30:
                         self._state = 'attack_ee'
@@ -445,6 +449,8 @@ class UI:
                         pg.draw.rect(d, (255, 0, 0), rect)
                         rect.width = int(400 / m.max_hp * m.hp)
                         pg.draw.rect(d, (0, 255, 0), rect)
+                    if self._damage_timer > 25:
+                        self.dmg_font.render(gg.displayer(), m.ani.pos, str(self._attack_score // 10 * 10), 3)
             else:
                 self._attack_bar_shower(int(math.pow(self._attack_display_timer, 2)))
                 self._attack_display_timer += 1
@@ -465,6 +471,8 @@ class UI:
 
         if self._dialog is not None:
             if self._dialog.end:
+                if type(self._dialog) is self.selector:
+                    chanel.Chanel.play(gg.sounds['menuconfirm'])
                 if len(self._dialog.l_left) > 1:
                     self._dialog = self.dialoger(self._dialog.l_left[0],
                                                  self._dialog.l_left[1:],
@@ -479,10 +487,13 @@ class UI:
                 del self._dialog
                 self._dialog = None
             else:
-                if type(self._dialog) is self.selector and pg.K_x in gg.key_events:
-                    gg.set_state('SELECT')
-                    self._state = 'select'
-                    del self._dialog
-                    self._dialog = None
-                    return
+                if type(self._dialog) is self.selector:
+                    if pg.K_x in gg.key_events:
+                        chanel.Chanel.play(gg.sounds['menuconfirm'])
+                        gg.set_state('SELECT')
+                        self._state = 'select'
+                        del self._dialog
+                        self._dialog = None
+                        return
+
                 self._dialog.update()

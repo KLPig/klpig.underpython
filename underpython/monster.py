@@ -1,4 +1,4 @@
-from underpython import base
+from underpython import base, game, chanel
 
 
 class Monster:
@@ -21,6 +21,7 @@ class Monster:
             return
         self.hp = max(self.hp - damage, 0)
         if not self.hp:
+            chanel.Chanel.play(game.GAME.sounds['enemydust'])
             self.defeat = base.GENOCIDE_ROUTE
 
     def heal(self, num: int):

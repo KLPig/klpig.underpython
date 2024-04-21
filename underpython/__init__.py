@@ -12,3 +12,5 @@ from .monster import *
 from .player import *
 from .wave import *
 from .game import *
+from .chanel import *
+from .font import *

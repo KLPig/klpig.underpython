@@ -1,4 +1,4 @@
-from underpython import monster, base
+from underpython import monster, base, chanel, game
 
 
 class Player:
@@ -36,9 +36,19 @@ class Player:
     def on_attacked(self, attacker: monster.Monster, damage: int) -> int | None: pass
 
     def heal(self, hp: int):
+        gg = game.GAME
+        if hp > 0:
+            chanel.Chanel.play(gg.sounds['healsound'])
+        elif hp < 0:
+            chanel.Chanel.play(gg.sounds['hurtsound'])
         self.hp = max(min(self.hp + hp, self.max_hp), 0)
 
     def hurt(self, hp: int):
+        gg = game.GAME
+        if hp < 0:
+            chanel.Chanel.play(gg.sounds['healsound'])
+        elif hp > 0:
+            chanel.Chanel.play(gg.sounds['hurtsound'])
         self.hp = max(min(self.hp - hp, self.max_hp), 0)
 
 

@@ -1,8 +1,9 @@
-from underpython import player, monster, wave, base, inventory, displayer
+from underpython import player, monster, wave, base, inventory, displayer, chanel
 import pygame as pg
 import os
 import time
 import sys
+import random
 
 
 class Game:
@@ -21,12 +22,15 @@ class Game:
         self.player = _player
         self.monsters = monsters
         self.waves = waves
+        self.wave_no = 0
         self.graphics: dict[str, pg.surface.Surface] = {'NULL': pg.surface.Surface((1, 1))}
         self.sounds: dict[str, pg.mixer.Sound] = {}
         self.rp = resource_path
+        self.state = 'START'
         self.displayer = displayer.Displayer()
         self.st_time: type(time.time())
         self.ui = displayer.UI(save_enabled)
+        self.ui.dmg_font.load(self.rp, 'uidamagetext')
         self.key_events = []
         self.state = 'SELECT'
         self.tick = 0
@@ -48,12 +52,14 @@ class Game:
                     (img.endswith('.wav') or img.endswith('.mp3') or img.endswith('.ogg'))):
                 self.sounds[f.split('.')[0]] = pg.mixer.Sound(img)
 
+
     def build(self):
         self._load_graphics()
         self._load_sounds()
         self.displayer.set_window()
 
     def go(self):
+        chanel.Chanel.play(self.sounds['BeginBattle%d' % random.randint(1, 3)])
         self.st_time = time.time()
         self.st = time.time()
         self._loop()
@@ -73,8 +79,11 @@ class Game:
             elif event.type == pg.KEYDOWN:
                 self.key_events.append(event.key)
         if self.player.hp == 0 and self.state != 'END':
-            self.ui.dialogs(['GAME OVER[endl]Do not loose hope!', '%s, [endl]stay determined!' % self.player.name], 'end_game', no_skip=True, tpc=10)
+            chanel.Chanel.play(self.sounds['heartbeatbreaker'])
+            chanel.MChanel.play(self.sounds['mus_gameover'])
+            self.ui.dialogs(['GAME OVER[endl]Do not loose hope![endl]%s, [endl]stay determined!' % self.player.name], 'end_game', no_skip=True, tpc=10)
             self.hook.on_game_lost()
+            self.ui.soul_rect.exp_rect = pg.rect.Rect(0, 0, 1280, 960)
             self.set_state('END')
         for enemy in self.monsters:
             if enemy.defeat is not None:
@@ -86,6 +95,7 @@ class Game:
                 if not len(self.monsters):
                     self.hook.on_game_won(self.route)
                     if self.route is base.GENOCIDE_ROUTE:
+                        chanel.Chanel.play(self.sounds['levelup'])
                         self.ui.dialog('You won. =)', 'end_game', color=(255, 0, 0))
                     else:
                         self.ui.dialog('You won.', 'end_game')

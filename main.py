@@ -2,7 +2,7 @@ from underpython import *
 import os
 import random
 
-player = Player('Frisk', 20, 3, 24, 1)
+player = Player('Frisk', 20, 8, 24, 1)
 flowery_ani = Animations((640, 240), 4, tpf=5)
 flowery_ani.add_animation('idle', [
     'monsters.flowery.idle.1',
@@ -27,7 +27,7 @@ flowery_ani.add_animation('hurt',
                               'monsters.flowery.idle.1'
                           ], nxt='idle')
 flowery_ani.change_animation('idle')
-flowery = Monster(flowery_ani, 'flowery', 500, 15, -15,
+flowery = Monster(flowery_ani, 'flowery', 500, 15, 10,
                   ['say'])
 
 
@@ -121,6 +121,9 @@ def on_item_used(item_name: str) -> list[str] | None:
             return ['You had some bad coffee.', 'Disgusting!', 'You loss you hp!']
         else:
             return ['You had some coffee.', 'Not so bad!', 'You got %d hp!' % hp]
+
+
+MChanel.play(GAME.sounds['mus_flowery'])
 
 
 GAME.go()
