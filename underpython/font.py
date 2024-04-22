@@ -6,9 +6,11 @@ import pygame as pg
 
 class Font:
     def __init__(self):
+        self.name = ''
         self.chars = {}
 
     def load(self, path, name):
+        self.name = name
         p = os.path.join(path, 'fonts')
         img = pg.image.load(os.path.join(p, name + '.png'))
         arr = pg.PixelArray(img)
@@ -31,6 +33,6 @@ class Font:
         for s in text:
             surf = pg.transform.scale_by(self.chars[s], scale)
             surf_r = surf.get_rect()
-            surf_r.midleft = left, y
+            surf_r.bottomleft = left, y
             left += surf_r.width + 5
             surface.blit(surf, surf_r)

@@ -227,6 +227,7 @@ class RedSoul(Soul):
     color = (255, 0, 0)
 
     def update(self):
+        self.set_pos(self.pos)
         if game.GAME.player.wd:
             game.GAME.displayer().blit(self.unabled, self.rect)
         else:

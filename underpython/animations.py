@@ -64,3 +64,12 @@ class Animations:
             self._update_frame()
             self.timer = self.tpf
         self.timer -= 1
+
+    def __call__(self):
+        _name, frame = self.instant
+        name = self.find_ani_name(_name)
+        _surface = self.animations[name][frame]
+        surface = pg.transform.scale_by(game.GAME.graphics[_surface], self.scale)
+        rect = surface.get_rect()
+        rect.center = self.pos
+        return rect

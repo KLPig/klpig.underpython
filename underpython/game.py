@@ -31,6 +31,8 @@ class Game:
         self.st_time: type(time.time())
         self.ui = displayer.UI(save_enabled)
         self.ui.dmg_font.load(self.rp, 'uidamagetext')
+        for name in self.ui.names:
+            self.ui.speech_fonts[name].load(self.rp, name)
         self.key_events = []
         self.state = 'SELECT'
         self.tick = 0

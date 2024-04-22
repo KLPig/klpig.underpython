@@ -43,6 +43,7 @@ class Displayer:
 class UI:
     class dialoger:
         args = ['no-skip', 'tpc', 'color']
+        st = '* '
 
         def __init__(self, string: str, left, kwargs):
             game.GAME.ui.soul_rect.exp_rect = pg.rect.Rect(40, 450, 1200, 300)
@@ -59,7 +60,7 @@ class UI:
             self.l_left = left
             self.idx = 0
             self._timer = 0
-            self.texts = ['* ']
+            self.texts = [self.st]
             self.line = 0
             self.end = False
             self.res = False
@@ -84,7 +85,7 @@ class UI:
             while s.startswith('[['):
                 cmd = s.removeprefix('[[')
                 if cmd == 'endl':
-                    self.texts.append('* ')
+                    self.texts.append(self.st)
                     self.line += 1
                 elif cmd == 'nxtl':
                     self.texts.append('')
@@ -179,6 +180,42 @@ class UI:
                     game.GAME.displayer[0].blit(t, r)
                 i += 1
 
+    class speech(dialoger):
+        st = ''
+
+        def __init__(self, font_name, pos, string: str, left, kwargs):
+            self.font = game.GAME.ui.speech_fonts[font_name]
+            self.pos = pos
+            r = game.GAME.ui.soul_rect.exp_rect
+            super().__init__(string, left, kwargs)
+            game.GAME.ui.soul_rect.exp_rect = r
+
+        def update(self):
+            b = pg.transform.scale_by(game.GAME.graphics['ui.spbubble.left'], 5)
+            br = b.get_rect()
+            br.midright = self.pos
+            game.GAME.displayer().blit(b, br)
+            top = br.top + 70
+            for text in self.texts:
+                self.font.render(game.GAME.displayer(), (br.centerx - br.width // 35, top), text, scale=3)
+                top += 50
+            if self.end:
+                return
+            if pg.K_x in game.GAME.key_events and not self.arg['no_skip']:
+                while not self.process():
+                    pass
+            if self._timer > 0:
+                self._timer -= 1
+                return
+            if self.process():
+                self._timer -= 1
+                if pg.K_z in game.GAME.key_events or self._timer < -30:
+                    self.res = True
+                    self.end = True
+                    return
+            else:
+                self._timer = self.arg['tpc']
+
     def attack_bars(self, func):
         setattr(self, '_atk_bars', func)
 
@@ -265,6 +302,9 @@ class UI:
         self.wave: wave.Wave | None = None
         self.souls = attacks.Souls()
         self.dmg_font = font.Font()
+        self.names = ['monster', 'papyrus', 'sans']
+        self.speech_fonts = {name: font.Font() for name in self.names}
+        self.speeches = []
 
     def _attack_bar_shower(self, process: int, swap: bool = False):
         r = self.soul_rect.rect
@@ -317,6 +357,10 @@ class UI:
             self._dialog_states = end_state, game.GAME.state
         self._state = 'dialog'
         game.GAME.set_state('DIALOG')
+
+    def monster_speech(self, pos, strings: list[str], font_name='monster', **kwargs):
+        sp = self.speech(font_name, pos, strings[0], strings[1:], kwargs)
+        self.speeches.append(sp)
 
     def _update(self):
         if not self.text_setup:
@@ -439,6 +483,7 @@ class UI:
                     m = gg.monsters[self.target]
                     d = gg.displayer[0]
                     if self._damage_timer == 1:
+                        m.hurt(self._attack_score * 2 - self._attack_score // 10 * 20)
                         chanel.Chanel.play(gg.sounds['hitsound'])
                     elif self._damage_timer == 4:
                         m.ani.change_animation('hurt')
@@ -454,7 +499,7 @@ class UI:
                         rect.width = int(400 / m.max_hp * m.hp)
                         pg.draw.rect(d, (0, 255, 0), rect)
                     if self._damage_timer > 25:
-                        self.dmg_font.render(gg.displayer(), m.ani.pos, str(self._attack_score // 10 * 10), 3)
+                        self.dmg_font.render(gg.displayer(), m.ani.pos, str(self._attack_score * 2), 3)
             else:
                 self._attack_bar_shower(int(math.pow(self._attack_display_timer, 2)))
                 self._attack_display_timer += 1
@@ -472,6 +517,15 @@ class UI:
                 gg.hook.on_wave_end(w)
 
         gg.player.update()
+
+        for sp in self.speeches:
+            sp.update()
+            if sp.end:
+                self.speeches.remove(sp)
+                if len(sp.l_left) > 1:
+                    self.speeches.append(self.speech(sp.font.name, sp.pos, sp.l_left[0], sp.l_left[1:], sp.arg))
+                elif len(sp.l_left):
+                    self.speeches.append(self.speech(sp.font.name, sp.pos, sp.l_left[0], [], sp.arg))
 
         if self._dialog is not None:
             if self._dialog.end:

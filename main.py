@@ -2,14 +2,14 @@ from underpython import *
 import os
 import random
 
-player = Player('Frisk', 20, 15, 20, 1)
+player = Player('Frisk', 20, 5, 20, 1)
 flowery_ani = Animations((640, 240), 4, tpf=5)
 flowery_ani.add_animation('idle',
                           ['monsters.flowery.idle.%d' % i for i in [1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1]])
 flowery_ani.add_animation('hurt',
                           ['monsters.flowery.idle.1' for i in range(4)], nxt='idle')
 flowery_ani.change_animation('idle')
-flowery = Monster(flowery_ani, 'flowery', 5000, 15, 15,
+flowery = Monster(flowery_ani, 'flowery', 400, 14, 8,
                   ['hopes', 'dreams'])
 
 
@@ -18,7 +18,7 @@ def on_act(name: str) -> list[str] | None:
     if name == 'check':
         return ['Flowery, 15 at 15 df.[endl]The loast princess.']
     elif name == 'hopes':
-        player.df += 3
+        player.df += 2
         return ['You thought about why you\'re [nxtl]here, ', 'Defense greatly increased!!']
     elif name == 'dreams':
         player.heal(20)
@@ -289,32 +289,94 @@ class Hurricane(BottomShooter):
             self.end_wave()
 
 
+class BulletFinal(BulletShoot):
+    def on_wave_start(self):
+        game.GAME.ui.soul_rect.exp_rect.__init__(440, 400, 400, 400)
+        self.attacks.append(attacks.Attacks(GAME.monsters[0]))
+        GAME.ui.souls.get_now().set_pos(GAME.ui.soul_rect.rect.center)
+
+    def on_wave_update(self):
+        for atk in self.attacks:
+            atk.update()
+        if self.tick % 15 == 1:
+            if self.tick % 45 == 1:
+                r = random.randint(0, 359)
+                for i in range(r, r + 340, 60):
+                    atk = FbS((0, 0), GAME.graphics['pj.attack.fb.idle.1'])
+                    atk.set_r(i % 360)
+                    self.attacks[0].add(atk)
+            self.tgt = random.randint(240, 1040)
+            if self.tick == 181:
+                self.tgt = 640
+        elif self.tick % 15 < 9:
+            GAME.ui.soul_rect.exp_rect.centerx -= (flowery_ani.pos[0] + self.tgt) // 2 - flowery_ani.pos[0]
+            GAME.ui.souls.get_now().move_pos((-(flowery_ani.pos[0] + self.tgt) // 2 + flowery_ani.pos[0], 0))
+            flowery_ani.set_pos(((flowery_ani.pos[0] + self.tgt) // 2, flowery_ani.pos[1]))
+            if self.tick % 15 == 4:
+                self.attacks[0].add(FbRhb((random.randint(0, 1280), random.randint(1000, 1200)), game.GAME.graphics['pj.attack.fb.idle.1']))
+        elif self.tick % 4 == 1:
+            for a in [-30, 0, 30]:
+                atk = FbD(flowery_ani.pos, GAME.graphics['pj.attack.fb.idle.1'])
+                atk.face_to(GAME.ui.souls.get_now().pos)
+                atk.rotate(a)
+                self.attacks[0].add(atk)
+        if self.tick >= 200:
+            self.end_wave()
+
+
 waves = [BulletRiser, BulletShoot, BulletRiserOver, BulletSpin, BulletMixed, BulletShootFast,
-         BottomShooter, MixShooter, Hurricane]
+         BottomShooter, MixShooter, Hurricane, BulletFinal]
 
 GAME = Game(player, monsters, waves, os.path.join(os.path.dirname(__file__), 'resources'))
 write_game(GAME)
 
 
 GAME.build()
+idx = 0
+say = [
+    ['You are just[nxtl]so stupid', 'You know I\'ll[nxtl]become a flower[nxtl]again, don\'t you?'],
+    ['Are you just[nxtl]trying to get[nxtl]your[nxtl]\'Perfect Endding\'?', 'So silly,', 'You are just[nxtl]noob trying to[nxtl]save everything'],
+    ['See this?[nxtl]Your determination,[nxtl]it helps you[nxtl]to achieve[nxtl]everything,'],
+    ['How much I[nxtl]love it?', 'But got STUCK[nxtl]with it!', 'All you do[nxtl]was not in[nxtl]mind, right?'],
+    ['Let\'s just[nxtl]don\'t say this', 'Focus on your[nxtl]fight'],
+    ['Hey,[endl]watch out!'],
+    ['You\'ve seen[nxtl]rain?'],
+    ['Hey,[endl]watch up!', 'No![endl]watch down!'],
+    ['shooting quickly,[nxtl]looks like rain,[nxtl]', 'I\'d like to[nxtl]call it[nxtl]\'The Hurricane\''],
+    ['let\'s see[nxtl]how many times[nxtl]will you try[nxtl]for this attack?'],
+    ['']
+]
+
+
+@GAME.set_event
+def on_wave_start(wave):
+    global say, idx
+    GAME.ui.monster_speech(flowery_ani().midleft, say[idx])
+    idx = min(idx + 1, len(say) - 1)
 
 
 @GAME.set_event
 def on_wave_end(wave):
     GAME.player.df = 20
     GAME.ins_wave = (GAME.ins_wave + 1) % len(waves)
+    if not GAME.ins_wave and flowery.hp == flowery.max_hp:
+        flowery.defeat = PACIFIST_ROUTE
 
 
 GAME.inventory.set_item('last dream', False)
+GAME.inventory.set_item('determin.', False)
 GAME.inventory.set_inventory(['last dream' for i in range(8)])
 
 
 @GAME.inventory.events
 def on_item_used(item_name: str) -> list[str] | None:
     if item_name == 'last dream':
-        GAME.player.heal(20)
+        GAME.player.heal(10)
         GAME.player.hp = 50
-        return ['Your last hopes, [endl]Your last dreams,', 'Your determination..', 'Your HP maxed out!', 'You got extra 30 hp!']
+        return ['Your last hopes, [endl]Your last dreams,', 'Your determination..', 'Your recover 10 HP!', 'You got extra 30 hp!']
+    if item_name == 'determin.':
+        GAME.player.heal(100)
+        return ['Determination.']
 
 
 @GAME.ui.attack_bars
@@ -323,6 +385,18 @@ def atk():
     for i in range(4):
         tmp.append((-i * 200, 50))
     return tmp
+
+
+@player.events
+def on_attack(damage: int, target: monster.Monster) -> int | None:
+    global idx
+    GAME.inventory.set_inventory(['determin.' for i in range(8)])
+    flowery.acts = ['useless']
+    player.lv = 20
+    player.max_hp = 100
+    MChanel.stop()
+    idx = len(say) - 1
+    return damage * max(player.at * 5 - target.df * 3, 0) // 3
 
 
 MChanel.play(GAME.sounds['mus_flowery'])
