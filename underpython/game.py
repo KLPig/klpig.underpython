@@ -7,7 +7,7 @@ import random
 
 
 class Game:
-    Ts = 30
+    Ts = 50
     states = ['SELECT', 'FIGHT', 'ACT', 'ITEM', 'MERCY', 'SAVE', 'ATTACK', 'DIALOG', 'SOUL', 'END']
 
     def set_event(self, func):
@@ -38,6 +38,7 @@ class Game:
         self.tick = 0
         self.font = pg.font.SysFont('dtm-sans', 75)
         self.route: base.GameMethod | None = None
+        self.subrun = False
 
     def _load_graphics(self):
         path = os.path.join(self.rp, 'images')
@@ -54,32 +55,22 @@ class Game:
                     (img.endswith('.wav') or img.endswith('.mp3') or img.endswith('.ogg'))):
                 self.sounds[f.split('.')[0]] = pg.mixer.Sound(img)
 
-
     def build(self):
         self._load_graphics()
         self._load_sounds()
         self.displayer.set_window()
 
-    def go(self):
-        chanel.Chanel.play(self.sounds['BeginBattle%d' % random.randint(1, 3)])
-        self.st_time = time.time()
-        self.st = time.time()
+    def go(self, subrun=False):
+        self.subrun = subrun
         self._loop()
 
     def _update(self, tick: int):
         if self.ui._state == 'end_game':
-            pg.quit()
-            sys.exit()
-        self.tick = tick
-        self.displayer.clear()
-        self.key_events = []
-        for event in pg.event.get():
-            if event.type == pg.QUIT:
-                self.hook.on_game_quit()
+            if not self.subrun:
                 pg.quit()
                 sys.exit()
-            elif event.type == pg.KEYDOWN:
-                self.key_events.append(event.key)
+        self.tick = tick
+        self.displayer.clear()
         if self.player.hp == 0 and self.state != 'END':
             chanel.Chanel.play(self.sounds['heartbeatbreaker'])
             chanel.MChanel.play(self.sounds['mus_gameover'])
@@ -110,16 +101,27 @@ class Game:
     def _loop(self):
         tick = 0
         while True:
+            if not self.tick:
+                self.st = pg.time.get_ticks()
+            self.key_events = []
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    self.hook.on_game_quit()
+                    pg.quit()
+                    sys.exit()
+                elif event.type == pg.KEYDOWN:
+                    self.key_events.append(event.key)
             self._update(tick)
-            d = time.time() - self.st
-
-            if d < self.Ts:
-                time.sleep((self.Ts - d) / 1000)
+            if self.ui._state == 'end_game':
+                break
+            d = pg.time.get_ticks() - self.st
+            if d <= self.Ts * (self.tick + 1):
+                pg.time.delay(self.Ts * (self.tick + 1) - d)
             else:
+                """
                 raise base.UnderPythonWarning(
                     'fps was lower than the set one, losing speeds.'
-                )
-            self.st = time.time()
+                )"""
             tick += 1
 
     def set_state(self, state: str):

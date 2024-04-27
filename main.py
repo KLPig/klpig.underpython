@@ -111,7 +111,7 @@ class BulletSpin(Wave):
             atk.update()
         if self.tick % 30 == 1:
             r = random.randint(0, 359)
-            for i in range(r, r + 179, 15):
+            for i in range(r, r + 359, 45):
                 atk = FbS((0, 0), GAME.graphics['pj.attack.fb.idle.1'])
                 atk.set_r(i % 360)
                 self.attacks[0].add(atk)
@@ -167,6 +167,9 @@ class BulletShoot(Wave):
                 self.attacks[0].add(atk)
         if self.tick >= 200:
             self.end_wave()
+
+    def on_wave_end(self):
+        flowery_ani.pos = (640, flowery_ani.pos[1])
 
 
 class BulletMixed(Wave):
@@ -327,7 +330,7 @@ class BulletFinal(BulletShoot):
 waves = [BulletRiser, BulletShoot, BulletRiserOver, BulletSpin, BulletMixed, BulletShootFast,
          BottomShooter, MixShooter, Hurricane, BulletFinal]
 
-GAME = Game(player, monsters, waves, os.path.join(os.path.dirname(__file__), 'resources'))
+GAME = Game(player, monsters, waves, os.path.join('.', 'resources'))
 write_game(GAME)
 
 
@@ -402,4 +405,5 @@ def on_attack(damage: int, target: monster.Monster) -> int | None:
 MChanel.play(GAME.sounds['mus_flowery'])
 
 
-GAME.go()
+if __name__ == '__main__':
+    GAME.go()

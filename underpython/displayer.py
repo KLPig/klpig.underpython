@@ -7,12 +7,15 @@ import math
 class Displayer:
     def __init__(self):
         self.camera = (0, 0, 0)
-        self.window = pg.display.set_mode((640, 480), pg.SCALED | pg.RESIZABLE)
+        if not pg.display.get_active():
+            self.window = pg.display.set_mode((640, 480), pg.SCALED | pg.RESIZABLE)
+        else:
+            self.window = pg.display.get_surface()
         self.surfaces = [pg.surface.Surface((1280, 960))]
 
     def set_window(self):
         pg.display.set_caption('UNDERTALE')
-        pg.display.set_icon(game.GAME.graphics['ui.icon'])
+        pg.display.set_icon(pg.transform.scale_by(game.GAME.graphics['ui.icon'], 4))
 
     def clear(self):
         for i in range(len(self.surfaces)):
