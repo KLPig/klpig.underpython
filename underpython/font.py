@@ -15,7 +15,7 @@ class Font:
         img = pg.image.load(os.path.join(p, name + '.png'))
         arr = pg.PixelArray(img)
         xml = bf.data(fromstring(open(os.path.join(p, name + '.xml')).read()))
-        spc = {'questionmark': '?', 'space': ' ', 'slash': '/'}
+        spc = {'questionmark': '?', 'space': ' ', 'slash': '/', 'dot': '.'}
         for d in xml['font']['spritesheet']['sprite']:
             r = d['rect']
             name = str(d['@name'])

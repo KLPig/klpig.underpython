@@ -12,6 +12,7 @@ class _Chanel:
             del self.sound
             self.sound = None
         self.sound = _sound
+        self.sound.set_volume(0.5)
         self.sound.play(-self.loop)
 
     def stop(self):
@@ -28,6 +29,7 @@ class _MChanel(_Chanel):
         if self.sound is not None:
             self.sound.stop()
         super().play(_sound)
+        self.sound.set_volume(1.0)
     loop = True
 
 

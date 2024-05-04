@@ -42,3 +42,8 @@ class Inventory:
                 self.inventory[i] = name
                 return
         self.inventory.append(name)
+
+    def write_data(self, invent):
+        self.inventory = invent.inventory
+        for k, v in invent.items.items():
+            self.items[k] = v

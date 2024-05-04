@@ -3,12 +3,11 @@ import pygame as pg
 import os
 import time
 import sys
-import random
 
 
 class Game:
     Ts = 50
-    states = ['SELECT', 'FIGHT', 'ACT', 'ITEM', 'MERCY', 'SAVE', 'ATTACK', 'DIALOG', 'SOUL', 'END']
+    states = ['SELECT', 'FIGHT', 'ACT', 'ITEM', 'MERCY', 'SAVE', 'ATTACK', 'DIALOG', 'SOUL', 'END', 'SAVE']
 
     def set_event(self, func):
         if func.__name__ in self.hook.__dir__():
@@ -39,6 +38,7 @@ class Game:
         self.font = pg.font.SysFont('dtm-sans', 75)
         self.route: base.GameMethod | None = None
         self.subrun = False
+        self.game_success = False
 
     def _load_graphics(self):
         path = os.path.join(self.rp, 'images')
@@ -65,6 +65,8 @@ class Game:
         self._loop()
 
     def _update(self, tick: int):
+        if tick == 1:
+            self.hook.on_game_go()
         if self.ui._state == 'end_game':
             if not self.subrun:
                 pg.quit()
@@ -74,6 +76,7 @@ class Game:
         if self.player.hp == 0 and self.state != 'END':
             chanel.Chanel.play(self.sounds['heartbeatbreaker'])
             chanel.MChanel.play(self.sounds['mus_gameover'])
+            self.player.hp = self.player.max_hp
             self.ui.dialogs(['GAME OVER[endl]Do not loose hope![endl]%s, [endl]stay determined!' % self.player.name], 'end_game', no_skip=True, tpc=10)
             self.hook.on_game_lost()
             self.ui.soul_rect.exp_rect = pg.rect.Rect(0, 0, 1280, 960)
@@ -87,6 +90,7 @@ class Game:
                 self.monsters.remove(enemy)
                 if not len(self.monsters):
                     self.hook.on_game_won(self.route)
+                    self.game_success = True
                     if self.route is base.GENOCIDE_ROUTE:
                         chanel.Chanel.play(self.sounds['levelup'])
                         self.ui.dialog('You won. =)', 'end_game', color=(255, 0, 0))

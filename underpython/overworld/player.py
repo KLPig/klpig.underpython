@@ -1,6 +1,7 @@
 import pygame as pg
 import os
 from . import game
+from underpython import player, inventory
 
 
 class Chara:
@@ -14,7 +15,7 @@ class Chara:
         self.dirs = [pg.K_DOWN, pg.K_LEFT, pg.K_RIGHT, pg.K_UP]
         self.timer = 0
 
-    def _update(self):
+    def _move(self):
         if self.is_player:
             spd = 0
             _dir = self.instant // 4
@@ -72,6 +73,7 @@ class Chara:
                 self.timer = 0
             self.timer += bool(spd)
 
+    def _update(self):
         x, y = self.r_pos
         ax, ay = game.GAME.dis_camera
         surf = pg.transform.scale_by(self.surfaces[self.instant], 2.5)
@@ -79,10 +81,34 @@ class Chara:
         rect.midbottom = x + ax + 640, y + ay + 480
         game.GAME.dis().blit(surf, rect)
 
-    def set_pos(self, pos):
+    def set_pos(self, pos, c_view=False):
         x, y = pos
         self.r_pos = x - 640, y - 480
+        if c_view:
+            self._move()
+            self._update()
 
 
 class Player(Chara):
     is_player = True
+
+    def _handle_inv(self, item_no: int):
+        game.GAME.ui.close()
+
+    def _handle_check(self, item_no: int):
+        game.GAME.ui.close()
+
+    def on_item_used(self, func):
+        self.__setattr__('_handle_inv', func)
+
+
+    def on_item_checked(self, func):
+        self.__setattr__('_handle_check', func)
+
+    def __init__(self, rp, name, data: player.Player, invent: inventory.Inventory, desc: str, g=0, exp=0):
+        super().__init__(rp, name)
+        self.data = data
+        self.inv = invent
+        self.g = g
+        self.exp = exp
+        self.desc = desc

@@ -35,7 +35,7 @@ class Attack:
         x, y = point
         px, py = self.rect.topleft
         if self.rect.collidepoint(x, y):
-            return self.arr[x - px, y - py]
+            return self.arr[x - px, y - py] != 6203122
         else:
             return False
 

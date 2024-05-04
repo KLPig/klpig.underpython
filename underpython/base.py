@@ -72,3 +72,5 @@ class Hooks:
     def on_game_escaped(self): pass
 
     def on_game_quit(self): pass
+
+    def on_game_go(self): pass
