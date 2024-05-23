@@ -6,6 +6,7 @@ from underpython import game
 
 class Attack:
     enable_ul = True
+    is_attack = True
 
     def calc_dmg(self, attacker):
         return max(0, attacker.at * 5 - game.GAME.player.df * 3)
@@ -21,10 +22,12 @@ class Attack:
         self.remove = False
         self.arr = pg.PixelArray(graphic)
         self.org = pg.transform.scale_by(graphic, 3)
-        self.rot = 0
+        self.rot = rotation
+        self.set_img(graphic)
         self.dis: pg.surface.Surface = self.org
         self.rect = self.org.get_rect()
         self.attr = {}
+        self.img = graphic
         self.tick = 0
         for k, v in kwargs.items():
             self.attr[k] = v
@@ -81,6 +84,7 @@ class Attack:
         self.rect.center = int(x), int(y)
 
     def set_img(self, img: pg.Surface):
+        self.img = img
         self.org = pg.transform.scale_by(img, 3)
         self.set_rotation(self.rot)
 
@@ -132,11 +136,19 @@ class Attacks:
                 self.attacks.remove(atk)
                 self.on_attack_removed(atk)
                 continue
-            if atk.collide_point(game.GAME.ui.souls.get_now().pos) and not game.GAME.player.wd:
-                game.GAME.player.hurt(atk.calc_dmg(self.attacker))
+            pos = game.GAME.ui.souls.get_now().pos
+            if type(game.GAME.ui.souls.get_now()) is CyanSoul:
+                pos = game.GAME.ui.souls.get_now().dis_pos
+            if atk.collide_point(pos) and not game.GAME.player.wd and atk.is_attack:
+                dmg = atk.calc_dmg(self.attacker)
+                _d = game.GAME.player.on_attacked(self.attacker, dmg)
+                if _d is not None:
+                    dmg = _d
+                game.GAME.player.hurt(dmg)
                 if atk.enable_ul:
                     game.GAME.player.st_wd()
             atk.on_action()
+            atk.set_img(atk.img)
             atk.tick += 1
             atk.dis.unlock()
             game.GAME.displayer().blit(atk.dis, atk.rect)
@@ -248,13 +260,115 @@ class RedSoul(Soul):
             self.move_pos((spd, 0))
 
 
+class CyanSoul(Soul):
+    color = (0, 255, 255)
+    w = 100
+    h = 100
+
+    def __init__(self):
+        self.dis_pos = (0, 0)
+        super().__init__()
+
+    def update(self):
+        s = game.GAME.ui.soul_rect.rect
+        d = game.GAME.displayer()
+        self.set_pos(self.pos)
+        _x, _y = self.pos
+        self.pos = (round((_x - s.left - self.w // 2) / self.w) * self.w + s.left + self.w // 2,
+                    round((_y - s.top - self.h // 2) / self.h) * self.h + s.top + self.h // 2)
+        x, y = self.pos
+        dx, dy = self.dis_pos
+        if abs(dx - x) < 10:
+            dx = x
+        else:
+            dx -= (dx - x) / 2
+        if abs(dy - y) < 10:
+            dy = y
+        else:
+            dy -= (dy - y) / 2
+        self.dis_pos = dx, dy
+        self.rect.center = dx, dy
+        if game.GAME.player.wd:
+            game.GAME.displayer().blit(self.unabled, self.rect)
+        else:
+            game.GAME.displayer().blit(self.surface, self.rect)
+        for x in range(s.left + self.w, s.right - self.w + 1, self.w):
+            pg.draw.line(d, (0, 255, 255), (x, s.top), (x, s.bottom), width=3)
+        for y in range(s.top + self.h, s.bottom - self.h + 1, self.h):
+            pg.draw.line(d, (0, 255, 255), (s.left, y), (s.right, y), width=3)
+        keys = game.GAME.key_events
+        if pg.K_UP in keys:
+            self.move_pos((0, -self.h))
+        elif pg.K_DOWN in keys:
+            self.move_pos((0, self.h))
+        if pg.K_LEFT in keys:
+            self.move_pos((-self.w, 0))
+        elif pg.K_RIGHT in keys:
+            self.move_pos((self.w, 0))
+
+
+class BlueSoul(Soul):
+    color = (0, 0, 255)
+    direction = 0
+
+    def __init__(self):
+        super().__init__()
+        self.g = 0
+
+    def collide(self) -> bool:
+        s = game.GAME.ui.soul_rect.rect
+        if self.direction == 0:
+            dist = self.rect.bottom - s.bottom
+        elif self.direction == 1:
+            dist = self.rect.left - s.left
+        elif self.direction == 2:
+            dist = s.top - self.rect.top
+        else:
+            dist = s.right - self.rect.right
+        dist = abs(dist)
+        return dist < 20
+
+    def set_direction(self, _dir):
+        self.direction = _dir
+        self.g = 0
+
+    def update(self):
+        s = game.GAME.ui.soul_rect.rect
+        d = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+        key = pg.key.get_pressed()
+        if key[pg.K_LEFT]:
+            ax, ay = d[(self.direction + 3) % 4]
+            self.move_pos((ax * 12, ay * 12))
+        elif key[pg.K_RIGHT]:
+            ax, ay = d[(self.direction + 1) % 4]
+            self.move_pos((ax * 12, ay * 12))
+        if key[pg.K_UP] and (self.collide() or self.g >= 0):
+            if self.collide():
+                self.g = 40
+        else:
+            if self.g >= 0 and not self.collide():
+                self.g = -5
+            elif self.collide():
+                self.g = 0
+        self.g -= 5
+        ax, ay = d[(self.direction + 2) % 4]
+        self.move_pos((ax * self.g, ay * self.g))
+        if game.GAME.player.wd:
+            game.GAME.displayer().blit(self.unabled, self.rect)
+        else:
+            game.GAME.displayer().blit(self.surface, self.rect)
+
+
 class Souls:
     def __init__(self):
-        self.souls = [RedSoul()]
+        self.souls = [RedSoul(), CyanSoul(), BlueSoul()]
         self.now = 0
 
-    def get_now(self) -> RedSoul | Soul:
+    def get_now(self) -> RedSoul | CyanSoul | BlueSoul | Soul:
         return self.souls[self.now]
 
-    def set_now(self, now):
+    def set_now(self, now, set_pos=True):
+        pos = self.get_now().pos
         self.now = max(0, min(len(self.souls) - 1, now))
+        if set_pos:
+            self.get_now().pos = pos

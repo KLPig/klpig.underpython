@@ -11,16 +11,17 @@ def _ui__nothing(**args):
 
 class ui(SoulRect):
     class dialoger(UI.dialoger):
+        args = ['no_skip', 'tpc', 'color', 'face_sprite']
         def _get_key_events(self):
             return game.GAME.key_events
 
         def __init__(self, string: str, left, kwargs):
-            self.arg = {'no_skip': False, 'tpc': 0, 'color': (255, 255, 255)}
+            self.arg = {'no_skip': False, 'tpc': 0, 'color': (255, 255, 255), 'face_sprite': None}
             self.left = 50
             for k, v in kwargs.items():
                 if k in self.args:
                     self.arg[k] = v
-                elif k == 'left':
+                elif k == 'dialog_left':
                     self.left = v
             cmd = ''
             writing_cmd = False
@@ -49,6 +50,11 @@ class ui(SoulRect):
         def _display(self):
             r = game.GAME.ui.exp_rect
             top = r.top + 10
+            if self.arg['face_sprite'] is not None:
+                sp = pg.transform.scale(self.arg['face_sprite'], (r.height - 100, r.height - 100))
+                rect = sp.get_rect()
+                rect.topleft = r.left + 50, r.top + 50
+                game.GAME.dis().blit(sp, rect)
             for text in self.texts:
                 txt = game.GAME.font.render(text, True, self.arg['color'])
                 txt_rect = txt.get_rect()
@@ -70,6 +76,7 @@ class ui(SoulRect):
                 txt_rect = txt.get_rect()
                 txt_rect.centerx = 640
                 self.sr.append((txt, txt_rect))
+
         def _display(self):
             i = 0
             for t, r in self.sr:
@@ -118,11 +125,9 @@ class ui(SoulRect):
             else:
                 if type(self._dialog) is self.selector:
                     if pg.K_x in gg.key_events:
-                        chanel.Chanel.play(gg.sounds['menuconfirm'])
-                        res = self._dialog.res
                         del self._dialog
                         self._dialog = None
-                        self.end_func(res)
+                        self.close()
                         return
 
                 self._dialog.update()

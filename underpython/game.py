@@ -39,6 +39,7 @@ class Game:
         self.route: base.GameMethod | None = None
         self.subrun = False
         self.game_success = False
+        self.before_player_dialog: str | None = None
 
     def _load_graphics(self):
         path = os.path.join(self.rp, 'images')
@@ -60,7 +61,12 @@ class Game:
         self._load_sounds()
         self.displayer.set_window()
 
-    def go(self, subrun=False):
+    def go(self, subrun=False, name=''):
+        print('Process: ', end='')
+        if subrun:
+            print('subprocess', name)
+        else:
+            print('root process', sys.modules['__main__'].__name__, end='')
         self.subrun = subrun
         self._loop()
 

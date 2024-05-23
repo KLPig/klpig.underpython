@@ -31,6 +31,10 @@ class Font:
         width = sum([self.chars[s].get_width() * scale for s in text]) + len(text) * 5 - 5
         left -= width // 2
         for s in text:
+            if s in ['q', 'y', 'p', 'g', 'j']:
+                y = pos[1] + 12
+            else:
+                y = pos[1]
             surf = pg.transform.scale_by(self.chars[s], scale)
             surf_r = surf.get_rect()
             surf_r.bottomleft = left, y

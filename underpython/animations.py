@@ -12,7 +12,7 @@ class Animations:
         self.instant = ('NULL', 0)
         self.pos = pos
         self.nxt: dict[str, str] = {}
-        self.tpf = 3
+        self.tpf = tpf
         self.timer = 3
 
     def __call__(self, *args, **kwargs):
@@ -47,6 +47,7 @@ class Animations:
 
     def _update_frame(self):
         name, no = self.instant
+        name = self.find_ani_name(name)
         if no >= len(self.animations[name]) - 1:
             self.change_animation(self.nxt[name])
         else:

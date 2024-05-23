@@ -1,11 +1,15 @@
 import importlib
 import os.path
 from . import maps, player, ui
-from underpython import displayer, base, chanel
+from underpython import displayer, base, chanel, game
 import pygame as pg
 import sys
 import os
 import random
+
+
+def load_image(res_path: str, name: str) -> pg.Surface:
+    return pg.image.load(os.path.join(os.path.join(res_path, 'images'), name + '.png'))
 
 
 class Game:
@@ -16,7 +20,6 @@ class Game:
         self.dis = displayer.Displayer()
         self.map = _map
         self.rp = resource_path
-        self.chara = []
         self.player = _player
         self.dis_camera = (0, 0)
         self.tick = 0
@@ -42,6 +45,8 @@ class Game:
         if not self.ui.pause:
             self.player._move()
         self.map.get_now()._update()
+        for c in self.map.get_now().chara:
+            c._update()
         self.player._update()
         self.ui.update()
         self.dis._update()
@@ -89,21 +94,24 @@ class Game:
         pg.display.update()
         while p.get_busy():
             pass
-        game = importlib.import_module(name)
-        importlib.reload(game)
-        game.GAME.player.write_data(self.player.data)
-        game.GAME.inventory.write_data(self.player.inv)
-        game.GAME.go(True)
-        while not game.GAME.game_success:
-            importlib.reload(game)
-            game.GAME.player.write_data(self.player.data)
-            game.GAME.inventory.write_data(self.player.inv)
-            game.GAME.go(True)
-        self.player.data.write_data(game.GAME.player)
-        self.player.inv.write_data(game.GAME.inventory)
+        _game = importlib.import_module(name)
+        importlib.reload(_game)
+        gg = game.GAME
+        gg.player.write_data(self.player.data)
+        gg.inventory.write_data(self.player.inv)
+        gg.go(True, _game.__name__)
+        while not gg.game_success:
+            importlib.reload(_game)
+            gg.player.write_data(self.player.data)
+            gg.inventory.write_data(self.player.inv)
+            gg.go(True)
+        self.player.data.write_data(gg.player)
+        self.player.inv.write_data(gg.inventory)
         chanel.MChanel.stop()
-        del game.GAME.player, game.GAME.inventory, game.GAME
         self.st = pg.time.get_ticks() - self.Ts * (self.tick + 1)
+        return gg.route
+
+
 
 
 def set_game(_game: Game):

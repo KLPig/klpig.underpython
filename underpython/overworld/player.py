@@ -8,7 +8,13 @@ class Chara:
     is_player = False
 
     def __init__(self, rp, name):
-        self.surfaces = [pg.image.load(os.path.join(rp, 'sprites/%s/%d.png' % (name, i))) for i in range(16)]
+        self.surfaces = []
+        for i in range(16):
+            f = os.path.join(rp, 'sprites/%s/%d.png' % (name, i))
+            if os.path.exists(f):
+                self.surfaces.append(pg.image.load(f))
+            else:
+                self.surfaces.append(None)
         self.r_pos = (0, 0)
         self.instant = 1
         self.ed = -1

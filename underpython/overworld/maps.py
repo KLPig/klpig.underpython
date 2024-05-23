@@ -1,6 +1,6 @@
 import pygame as pg
 import os
-from . import game
+from . import game, player
 
 
 class Room:
@@ -9,13 +9,14 @@ class Room:
         rect = pg.Rect(r[0], r[1], r[2], r[3])
         self.handler.append((rect, func))
 
-    def __init__(self, rp, name, a_rects: list[pg.Rect], exclude_rects: list[pg.Rect]):
+    def __init__(self, rp, name, a_rects: list[pg.Rect], exclude_rects: list[pg.Rect], characters: list[player.Chara] = []):
         self.surface = pg.transform.scale_by(pg.image.load(os.path.join(rp, 'maps/%s.png' % name)), 2)
         self.pos: tuple[int, int] | None = (0, 0)
         self.rl = a_rects
         self.el = exclude_rects
         func = self.__init__
         self.handler: list[tuple[pg.Rect, type(func)]] = []
+        self.chara = characters
 
     def set_pos(self, pos):
         self.pos = pos

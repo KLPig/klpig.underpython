@@ -2,6 +2,13 @@
 def empty_function(): pass
 
 
+def function_of(cmds: list[str]):
+    def tmp():
+        for c in cmds:
+            eval(c)
+    return tmp
+
+
 # Errors
 
 class UnderPythonError(Exception):
@@ -46,7 +53,16 @@ CALCULATE_DAMAGE = Constant(1)
 
 
 class GameMethod(Constant):
-    pass
+    def __add__(self, other: Constant | None):
+        if other is None or other.data == 4:
+            return type(self)(self.data)
+        elif self.data == 4 or self.data == other.data:
+            return type(self)(other.data)
+        else:
+            return type(self)(4)
+
+    def __iadd__(self, other: Constant | None):
+        self.data = (self + other).data
 
 
 PACIFIST_ROUTE = GameMethod(2)

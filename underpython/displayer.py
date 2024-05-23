@@ -5,6 +5,8 @@ import math
 
 
 class Displayer:
+    size = (5000, 1000)
+
     def __init__(self):
         self.camera = (0, 0, 0)
         if not pg.display.get_active():
@@ -19,15 +21,18 @@ class Displayer:
 
     def clear(self):
         for i in range(len(self.surfaces)):
-            self.surfaces[i] = pg.surface.Surface((1280, 960))
+            self.surfaces[i] = pg.surface.Surface(self.size)
 
     def _update(self):
         self.window.fill((0, 0, 0))
         x, y, r = self.camera
         for surface in self.surfaces:
-            scale = min(self.window.get_width() / surface.get_width(),
-                        self.window.get_height() / surface.get_height())
+            scale = min(self.window.get_width() / 1280,
+                        self.window.get_height() / 960)
             r_surf = pg.transform.scale_by(surface, scale)
+            r_surf_p = pg.PixelArray(r_surf)
+            r_surf = r_surf_p[-x:self.window.get_width() - x, -y:self.window.get_height() - y].make_surface()
+            del r_surf_p
             r_surf = pg.transform.rotate(r_surf, r)
             r_surf_rect = r_surf.get_rect()
             r_surf_rect.center = (self.window.get_width() / 2 + x,
@@ -327,6 +332,7 @@ class UI:
         self.speech_fonts = {name: font.Font() for name in self.names}
         self.speeches = []
         self.save = save_button
+        self.bp_dialog: UI.dialoger | None = None
 
     def _attack_bar_shower(self, process: int, swap: bool = False):
         r = self.soul_rect.rect
@@ -399,6 +405,8 @@ class UI:
 
         gg = game.GAME
         if gg.state == 'SELECT':
+            if self.bp_dialog is None and game.GAME.before_player_dialog is not None:
+                self.bp_dialog = self.dialoger(game.GAME.before_player_dialog, [], {})
             self.soul_rect.exp_rect = pg.rect.Rect(40, 450, 1200, 300)
             if self.buttons[self.selected].instant[0] == 'idle':
                 self.buttons[self.selected].change_animation('selected')
@@ -447,11 +455,15 @@ class UI:
                         self._state = 'item_e'
                         self.choose(gg.inventory.inventory, 'item_e')
                 else:
+                    game.GAME.player.on_mercy()
                     for m in gg.monsters:
                         if m.spare_able:
                             m.defeat = base.PACIFIST_ROUTE
                     self._state = 'spare_ee'
         else:
+            if self.bp_dialog is not None:
+                del self.bp_dialog
+                self.bp_dialog = None
             for button in self.buttons:
                 button.change_animation('idle')
 
@@ -586,6 +598,8 @@ class UI:
                 elif len(sp.l_left):
                     self.speeches.append(self.speech(sp.font.name, sp.pos, sp.l_left[0], [], sp.arg))
 
+        if self.bp_dialog is not None:
+            self.bp_dialog.update()
         if self._dialog is not None:
             if self._dialog.end:
                 if type(self._dialog) is self.selector:

@@ -29,7 +29,7 @@ class Player:
 
     def on_item(self, name: str): pass
 
-    def on_mercy(self, target: monster.Monster): pass
+    def on_mercy(self): pass
 
     def on_heal(self, hp: int) -> int | None: pass
 
