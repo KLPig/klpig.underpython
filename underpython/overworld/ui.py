@@ -12,6 +12,7 @@ def _ui__nothing(**args):
 class ui(SoulRect):
     class dialoger(UI.dialoger):
         args = ['no_skip', 'tpc', 'color', 'face_sprite']
+
         def _get_key_events(self):
             return game.GAME.key_events
 

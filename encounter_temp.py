@@ -330,7 +330,7 @@ class BulletFinal(BulletShoot):
 waves = [BulletRiser, BulletShoot, BulletRiserOver, BulletSpin, BulletMixed, BulletShootFast,
          BottomShooter, MixShooter, Hurricane, BulletFinal]
 
-GAME = Game(player, monsters, waves, os.path.join('.', 'resources'))
+GAME = Game(player, monsters, waves, os.path.join('../undertale.determination/', 'resources'))
 write_game(GAME)
 
 
@@ -356,6 +356,7 @@ def on_wave_start(wave):
     global say, idx
     GAME.ui.monster_speech(flowery_ani().midleft, say[idx])
     idx = min(idx + 1, len(say) - 1)
+    GAME.theme_color = (127, 0, 0)
 
 
 @GAME.set_event
@@ -364,6 +365,7 @@ def on_wave_end(wave):
     GAME.ins_wave = (GAME.ins_wave + 1) % len(waves)
     if not GAME.ins_wave and flowery.hp == flowery.max_hp:
         flowery.defeat = PACIFIST_ROUTE
+    GAME.theme_color = (255, 255, 255)
 
 
 GAME.inventory.set_item('last dream', False)
@@ -403,6 +405,9 @@ def on_attack(damage: int, target: monster.Monster) -> int | None:
 
 
 MChanel.play(GAME.sounds['mus_flowery'])
+
+
+GAME.theme_color = (127, 0, 0)
 
 
 if __name__ == '__main__':

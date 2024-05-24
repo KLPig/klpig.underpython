@@ -32,7 +32,7 @@ class Font:
         left -= width // 2
         for s in text:
             if s in ['q', 'y', 'p', 'g', 'j']:
-                y = pos[1] + 12
+                y = pos[1] + 12 * (self.name == 'sans')
             else:
                 y = pos[1]
             surf = pg.transform.scale_by(self.chars[s], scale)
@@ -40,3 +40,26 @@ class Font:
             surf_r.bottomleft = left, y
             left += surf_r.width + 5
             surface.blit(surf, surf_r)
+
+    def rend_surf(self, text: str, scale=5, color=(255, 255, 255)):
+        width = int(sum([self.chars[s].get_width() * scale for s in text])) + len(text) * 5 - 5
+        left = 0
+        surface = pg.Surface((width, int(self.chars['F'].get_height() * scale)))
+        for s in text:
+            if s in ['q', 'y', 'p', 'g', 'j']:
+                y = 12 * (self.name == 'sans')
+            else:
+                y = 0
+            surf = pg.transform.scale_by(self.chars[s], scale)
+            surf_r = surf.get_rect()
+            surf_r.topleft = left, y
+            left += surf_r.width + 5
+            surface.blit(surf, surf_r)
+        p_surf = pg.PixelArray(surface)
+        for i in range(p_surf.shape[0]):
+            for j in range(p_surf.shape[1]):
+                if p_surf[i][j] != surface.map_rgb((0, 0, 0)):
+                    p_surf[i][j] = color
+        surface = p_surf.make_surface()
+        del p_surf
+        return surface

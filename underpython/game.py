@@ -15,6 +15,9 @@ class Game:
 
     def __init__(self, _player: player.Player, monsters: list[monster.Monster], waves: list[type(wave.Wave)], resource_path: str = None, save_enabled: bool = False):
         pg.init()
+        self.theme_color: tuple[int, int, int] = (255, 255, 255)
+        self.confirm_color: tuple[int, int, int] = (255, 255, 0)
+        self.color_changed = False
         self.ins_wave = 0
         self.hook = base.Hooks()
         self.inventory = inventory.Inventory()
@@ -30,6 +33,7 @@ class Game:
         self.st_time: type(time.time())
         self.ui = displayer.UI(save_enabled)
         self.ui.dmg_font.load(self.rp, 'uidamagetext')
+        self.ui.state_font.load(self.rp, 'uibattlesmall')
         for name in self.ui.names:
             self.ui.speech_fonts[name].load(self.rp, name)
         self.key_events = []
@@ -108,6 +112,13 @@ class Game:
         self.ui._update()
         self.displayer._update()
 
+    def change_color(self, main_col: None | tuple[int, int, int] = None, conf_col: None | tuple[int, int, int] = None):
+        if main_col is not None:
+            self.theme_color = main_col
+        if conf_col is not None:
+            self.confirm_color = conf_col
+        self.color_changed = True
+
     def _loop(self):
         tick = 0
         while True:
@@ -124,6 +135,7 @@ class Game:
             self._update(tick)
             if self.ui._state == 'end_game':
                 break
+            self.color_changed = False
             d = pg.time.get_ticks() - self.st
             if d <= self.Ts * (self.tick + 1):
                 pg.time.delay(self.Ts * (self.tick + 1) - d)

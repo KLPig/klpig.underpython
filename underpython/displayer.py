@@ -1,3 +1,5 @@
+import random
+
 from underpython import game, attacks, wave, base, font, chanel
 import pygame as pg
 from underpython import animations as ani
@@ -31,7 +33,8 @@ class Displayer:
                         self.window.get_height() / 960)
             r_surf = pg.transform.scale_by(surface, scale)
             r_surf_p = pg.PixelArray(r_surf)
-            r_surf = r_surf_p[-x:self.window.get_width() - x, -y:self.window.get_height() - y].make_surface()
+            r_surf_p = r_surf_p[-x:self.window.get_width() - x, -y:self.window.get_height() - y]
+            r_surf = r_surf_p.make_surface()
             del r_surf_p
             r_surf = pg.transform.rotate(r_surf, r)
             r_surf_rect = r_surf.get_rect()
@@ -152,7 +155,7 @@ class UI:
             r.bottom = b
 
         def __init__(self, options: list[str], kwargs):
-            self.arg = {'color': (255, 255, 255)}
+            self.arg = {'color': game.GAME.theme_color}
             for k, v in kwargs.items():
                 if k in self.args:
                     self.arg[k] = v
@@ -170,9 +173,10 @@ class UI:
         def _render_fonts(self, options):
             for opt in options:
                 txt = game.GAME.font.render(opt, True, self.arg['color'])
+                txt_c = game.GAME.font.render(opt, True, game.GAME.confirm_color)
                 txt_rect = txt.get_rect()
                 txt_rect.centerx = 640
-                self.sr.append((txt, txt_rect))
+                self.sr.append((txt, txt_rect, txt_c))
 
         def update(self):
             if self.first:
@@ -189,22 +193,28 @@ class UI:
                 elif pg.K_UP in ke and self.idx:
                     self._dir = -1
                 elif pg.K_z in ke:
+                    chanel.Chanel.play(game.GAME.sounds['menuconfirm'])
                     self.end = True
                     self.res = self.idx
                     return
                 else:
                     self._dir = 0
-            self._pos += self._dir * 2
+            self._pos += (3 - abs(self._pos % 10 - 5) // 2) * self._dir
+            if self._dir != 0 and self._pos % 10 == 0:
+                chanel.Chanel.play(game.GAME.sounds['menumove'])
             self._display()
 
         def _display(self):
             i = 0
-            for t, r in self.sr:
+            for t, r, cr_ in self.sr:
                 if self.idx - 3 < i < self.idx + 3:
                     r.centery = (game.GAME.ui.soul_rect.rect.centery +
                                  (i - self._pos / 10) * 80)
                     t.set_alpha(255 - min(abs(r.centery - game.GAME.ui.soul_rect.rect.centery) // 2, 255))
-                    game.GAME.displayer[0].blit(t, r)
+                    if i == self._pos // 10:
+                        game.GAME.displayer[0].blit(cr_, r)
+                    else:
+                        game.GAME.displayer[0].blit(t, r)
                 i += 1
 
     class speech(dialoger):
@@ -247,7 +257,10 @@ class UI:
         setattr(self, '_atk_bars', func)
 
     def _atk_bars(self) -> list[tuple[int, int]]:
-        tmp = [(40, 30)]
+        if random.randint(0, 1):
+            tmp = [(40, 30)]
+        else:
+            tmp = [(1240, -30)]
         return tmp
 
     def _setup_buttons(self, save):
@@ -268,11 +281,11 @@ class UI:
 
     def _setup_states(self):
         p = game.GAME.player
-        texts = [(p.name, 80), ('LV', 10), (str(p.lv), 50), ('HP', 10),
+        texts = [(p.name.upper(), 80), ('LV', 10), (str(p.lv), 50), ('HP', 10),
                  (str(p.hp), 10), ('/', 10), (str(p.max_hp), 20)]
         left = 50
         for text, space in texts:
-            txt = game.GAME.font.render(text, True, (255, 255, 255))
+            txt = self.state_font.rend_surf(text, 3, self._color)
             txt_rect = txt.get_rect()
             txt_rect.midleft = (left, self.state_y)
             left += txt_rect.width + space
@@ -284,7 +297,7 @@ class UI:
         p = game.GAME.player
         change_list = [(2, p.lv), (4, p.hp), (6, p.max_hp)]
         for idx, val in change_list:
-            txt = game.GAME.font.render(str(val), True, (255, 255, 255))
+            txt = self.state_font.rend_surf(str(val), 3, self._color)
             self.texts[idx] = (txt, txt.get_rect(), self.texts[idx][2])
         left = 50
         for text, text_rect, space in self.texts:
@@ -321,18 +334,20 @@ class UI:
         self._state = 'select'
         self._attack_score = 0
         self._damage_timer = 0
-        self._dialog: UI.dialoger = None
+        self._dialog: UI.dialoger | None | UI.selector = None
         self._dialog_states = ('', '')
         self.target = 0
         self.dialog_res = ''
         self.wave: wave.Wave | None = None
         self.souls = attacks.Souls()
         self.dmg_font = font.Font()
+        self.state_font = font.Font()
         self.names = ['monster', 'papyrus', 'sans']
         self.speech_fonts = {name: font.Font() for name in self.names}
         self.speeches = []
         self.save = save_button
         self.bp_dialog: UI.dialoger | None = None
+        self._color = (255, 255, 255)
 
     def _attack_bar_shower(self, process: int, swap: bool = False):
         r = self.soul_rect.rect
@@ -398,6 +413,17 @@ class UI:
         self.save = not self.save
 
     def _update(self):
+        if game.GAME.theme_color != self._color:
+            if self._dialog is not None and self._dialog.arg['color'] == self._color:
+                self._dialog.arg['color'] = game.GAME.theme_color
+                if type(self._dialog) is self.selector:
+                    self._dialog.sr = []
+                    self._dialog._render_fonts(self._dialog.options)
+            self._color = game.GAME.theme_color
+            del self.texts
+            self.texts = []
+            self._setup_states()
+            self.text_setup = True
         if not self.text_setup:
             self._setup_states()
             self.text_setup = True
@@ -576,7 +602,7 @@ class UI:
                 self._attack_display_timer += 1
         else:
             pg.draw.rect(gg.displayer[0], (0, 0, 0), self.soul_rect.rect)
-            pg.draw.rect(gg.displayer[0], (255, 255, 255), self.soul_rect.rect, 8)
+            pg.draw.rect(gg.displayer[0], self._color, self.soul_rect.rect, 8)
 
         if gg.state == 'SOUL':
             self.souls.get_now().update()
