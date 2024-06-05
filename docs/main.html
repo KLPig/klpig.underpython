@@ -3,12 +3,34 @@
     <head>
         <title>UnderPython</title>
         <link rel="stylesheet" href="./style.css">
+        <script>
+            function f(){
+                tags = document.getElementsByTagName('span')
+                for(var x = 0; x < 18; x++){
+                    t = tags[x]
+                    t.addEventListener(
+                        'click',
+                        function(){
+                            window.open(top.location.href.split('#')[0] + '#' + this.id, '_self')
+                            document.getElementById('frame').src = './temp/' + this.id + '.html'
+                        }
+                    )
+                }
+                l = top.location.href.split('#')
+                if(l[1] != undefined)
+                    document.getElementById('frame').src = './temp/' + l[1] + '.html'
+                else
+                    window.open(top.location.href + '#up')
+                document.getElementById(l[1]).style.color = 'yellow'
+            }
+            document.addEventListener('click', f)
+        </script>
     </head>
     <body>
         <iframe id="frame"></iframe>
         <div id="menu">
             <h1 class="inner-menu">Content</h1>
-            <h2 class="inner-menu">Intruduction</h1>
+            <h2 class="inner-menu">Intruduction</h2>
             <span id="up" class="inner-menu">UnderPython - the undertale encounter mod</span>
             <span id="inst" class="inner-menu">Installation - download and use it</span>
             <span id="pk" class="inner-menu">Pre-knowledge - how to read this document?</span>
@@ -34,23 +56,7 @@
             <span id="cred" class="inner-menu">Credits</span>
         </div>
         <script>
-            tags = document.getElementsByTagName('span')
-            for(var x = 0; x < 18; x++){
-                t = tags[x]
-                t.addEventListener(
-                    'click',
-                    function(){
-                        window.open(top.location.href.split('#')[0] + '#' + this.id) 
-                        document.getElementById('frame').src = './temp/' + this.id + '.html'
-                    }
-                )
-            }
-            l = top.location.href.split('#')
-            if(l[1] != undefined)
-                document.getElementById('frame').src = './temp/' + l[1] + '.html'
-            else
-                window.open(top.location.href + '#up')        
-            document.getElementById(l[1]).style.color = 'yellow'
+            f()
         </script>
     </body>
 </html>

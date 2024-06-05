@@ -28,10 +28,6 @@
     font-family: dtm-sans;
     color: white;
 }
-span:hover
-{
-    color: yellow;
-}
 #frame
 {
     border: 0px;
@@ -43,4 +39,12 @@ span:hover
 }
 a{
     text-decoration: none;
+}
+span, h1, h2
+{
+    font-family: dtm-sans;
+}
+span:hover
+{
+    color: yellow;
 }
