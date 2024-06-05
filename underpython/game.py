@@ -1,3 +1,4 @@
+import copy
 from underpython import player, monster, wave, base, inventory, displayer, chanel
 import pygame as pg
 import os
@@ -15,6 +16,9 @@ class Game:
 
     def __init__(self, _player: player.Player, monsters: list[monster.Monster], waves: list[type(wave.Wave)], resource_path: str = None, save_enabled: bool = False):
         pg.init()
+        f = sys.modules['__main__'].__file__
+        print('UnderPython Game Init: ', f.removeprefix(os.path.dirname(f)))
+        print('Init basics...', end='\r')
         self.theme_color: tuple[int, int, int] = (255, 255, 255)
         self.confirm_color: tuple[int, int, int] = (255, 255, 0)
         self.color_changed = False
@@ -29,27 +33,37 @@ class Game:
         self.sounds: dict[str, pg.mixer.Sound] = {}
         self.rp = resource_path
         self.state = 'START'
+        print('Initing displayer', end='\r')
         self.displayer = displayer.Displayer()
         self.st_time: type(time.time())
         self.ui = displayer.UI(save_enabled)
+        print('\rLoading fonts: uidamagetext', end='')
         self.ui.dmg_font.load(self.rp, 'uidamagetext')
+        print('\rLoading fonts: uibattlesmall', end='')
         self.ui.state_font.load(self.rp, 'uibattlesmall')
         for name in self.ui.names:
+            print('\rLoading fonts:', name, end='')
             self.ui.speech_fonts[name].load(self.rp, name)
         self.key_events = []
         self.state = 'SELECT'
         self.tick = 0
+        print('\rLoading fonts:', 'dtm sans', end='')
         self.font = pg.font.SysFont('dtm-sans', 75)
         self.route: base.GameMethod | None = None
         self.subrun = False
         self.game_success = False
         self.before_player_dialog: str | None = None
+        self.blank_col = pg.PixelArray(copy.copy(pg.image.load(os.path.join(os.path.join(resource_path, 'images'), 'ui.system.blank.png'))))[0, 0]
+        print()
+        print('Init done.')
 
     def _load_graphics(self):
         path = os.path.join(self.rp, 'images')
+        m = len(os.listdir(path))
         for f in os.listdir(path):
             img = os.path.join(path, f)
             if os.path.isfile(img) and img.endswith('.png'):
+                print('\rLoading', f, end='')
                 self.graphics[f.removesuffix('.png')] = pg.image.load(img)
 
     def _load_sounds(self):
@@ -58,19 +72,28 @@ class Game:
             img = os.path.join(path, f)
             if (os.path.isfile(img) and
                     (img.endswith('.wav') or img.endswith('.mp3') or img.endswith('.ogg'))):
+                print('\rLoading', f, end='')
                 self.sounds[f.split('.')[0]] = pg.mixer.Sound(img)
 
     def build(self):
+        print('Source Building...')
+        print('Loading graphics:')
         self._load_graphics()
+        print()
+        print('Loading sounds:')
         self._load_sounds()
+        print()
+        print('Setting up windows...')
         self.displayer.set_window()
+        print('Source building done.')
 
     def go(self, subrun=False, name=''):
         print('Process: ', end='')
         if subrun:
             print('subprocess', name)
         else:
-            print('root process', sys.modules['__main__'].__name__, end='')
+            f = sys.modules['__main__'].__file__
+            print('root process', f.removeprefix(os.path.dirname(f)))
         self.subrun = subrun
         self._loop()
 
@@ -144,11 +167,22 @@ class Game:
                 raise base.UnderPythonWarning(
                     'fps was lower than the set one, losing speeds.'
                 )"""
+            print('\rTime', d, ', Tick', self.tick, end=' ')
+            num = 0
+            if wave.Wave.ins_attack is not None:
+                for a in wave.Wave.ins_attack:
+                    num += len(a.attacks)
+            print('No of atks', num, end='')
             tick += 1
 
     def set_state(self, state: str):
         if state in self.states:
             self.state = state
+
+
+    def blank(self, size: tuple[int, int]) -> pg.Surface:
+        return pg.transform.scale_by(GAME.graphics['ui.system.blank'], size)
+
 
 
 GAME: Game
@@ -157,3 +191,6 @@ GAME: Game
 def write_game(game: Game):
     global GAME
     GAME = game
+
+def blank(size: tuple[int, int]) -> pg.Surface:
+    return pg.transform.scale_by(copy.copy(pg.image.load(os.path.join('./resources/images', 'ui.system.blank.png'))), size)

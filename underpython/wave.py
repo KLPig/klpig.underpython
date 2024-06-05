@@ -1,7 +1,8 @@
-from underpython import base, attacks
+from underpython import base, attacks, game
 
 
 class Wave:
+    ins_attack: list[attacks.Attacks] | None = None
     hooks = ['on_wave_start', 'on_wave_update', 'on_wave_end']
 
     def __init__(self, *args):
@@ -10,8 +11,12 @@ class Wave:
         self.attacks: list[attacks.Attacks] = []
         self.on_wave_start()
 
+    def setup_rect(self, rect: tuple[int, int, int, int]):
+        game.GAME.ui.soul_rect.exp_rect.__init__(rect)
+
     def _update(self):
         self.tick += 1
+        Wave.ins_attack = self.attacks
         self.on_wave_update()
 
     def end_wave(self):

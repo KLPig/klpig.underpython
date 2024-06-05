@@ -17,6 +17,8 @@ class Game:
 
     def __init__(self, resource_path: str, _player: player.Player, _map: maps.Map):
         pg.init()
+        self.theme_color: tuple[int, int, int] = (255, 255, 255)
+        self.confirm_color: tuple[int, int, int] = (255, 255, 0)
         self.dis = displayer.Displayer()
         self.map = _map
         self.rp = resource_path

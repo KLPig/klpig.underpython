@@ -1,3 +1,5 @@
+import copy
+
 from underpython import base
 import pygame as pg
 import math
@@ -17,6 +19,16 @@ class Attack:
 
     def on_remove(self): pass
 
+    def set_alpha(self, alpha_val: int) -> None:
+        self.img.set_alpha(alpha_val)
+        self.set_img(self.img)
+
+    def get_alpha(self) -> int:
+        return self.img.get_alpha()
+
+    def get_img(self):
+        return self.img
+
     def __init__(self, position: tuple[int, int], graphic: pg.surface.Surface, rotation=0, **kwargs):
         self.pos = position
         self.remove = False
@@ -34,11 +46,10 @@ class Attack:
         self.set_rotation(rotation)
 
     def collide_point(self, point: tuple[int, int]) -> bool:
-        self.arr = pg.PixelArray(self.dis)
         x, y = point
         px, py = self.rect.topleft
         if self.rect.collidepoint(x, y):
-            return self.arr[x - px, y - py] != 6203122
+            return self.arr[x - px, y - py] != game.GAME.blank_col
         else:
             return False
 
@@ -48,7 +59,7 @@ class Attack:
             rot = self.rot
         ax = math.sin(math.radians(rot)) * steps
         ay = math.cos(math.radians(rot)) * steps
-        return ax, -ay
+        return -ax, -ay
 
     def move_forward(self, steps: float = 1, rotation: float = None):
         ax, ay = self.pos_to(steps, rotation)
@@ -63,9 +74,11 @@ class Attack:
         dx, dy = pos
         x, y = self.pos
         ax, ay = dx - x, dy - y
-        if not ay:
-            return 270 - 180 * (ax > 0)
-        return math.degrees(math.atan(-ax / ay)) + 180 * (dy > y)
+        dist = math.sqrt(ax * ax + ay * ay)
+        if ax > 0:
+            return 180 + math.degrees(math.acos(ay / dist))
+        else:
+            return 180 - math.degrees(math.acos(ay / dist))
 
     def face_to(self, pos: tuple[float, float]):
         r = self.angle_to(pos)
@@ -79,6 +92,7 @@ class Attack:
     def set_rotation(self, rotation: float):
         self.rot = (rotation % 360 + 360) % 360
         self.dis = pg.transform.rotate(self.org, self.rot)
+        self.arr = pg.PixelArray(copy.copy(self.dis))
         self.rect = self.dis.get_rect()
         x, y = self.pos
         self.rect.center = int(x), int(y)
@@ -152,6 +166,7 @@ class Attacks:
             atk.tick += 1
             atk.dis.unlock()
             game.GAME.displayer().blit(atk.dis, atk.rect)
+            # pg.draw.rect(game.GAME.displayer(), (255, 0, 0), atk.rect, 5)
 
 
 class SoulRect:
@@ -197,7 +212,7 @@ class Soul:
             [0, 0, 1, 1, 1, 1, 0, 0],
             [0, 0, 0, 1, 1, 0, 0, 0]
         ]
-        arr = pg.PixelArray(pg.Surface((8, 8)))
+        arr = pg.PixelArray(game.blank((8, 8)))
         for i in range(8):
             for j in range(8):
                 if soul[i][j]:
@@ -205,7 +220,7 @@ class Soul:
                 else:
                     arr[j, i] = 0
         self.surface = pg.transform.scale_by(arr.make_surface(), 7)
-        arr = pg.PixelArray(pg.Surface((8, 8)))
+        arr = pg.PixelArray(game.blank((8, 8)))
         for i in range(8):
             for j in range(8):
                 if soul[i][j]:
@@ -213,6 +228,9 @@ class Soul:
                 else:
                     arr[j, i] = 0
         self.unabled = pg.transform.scale_by(arr.make_surface(), 7)
+        del arr
+        self.surface.unlock()
+        self.unabled.unlock()
         self.rect = self.surface.get_rect()
         x, y = self.pos
         self.rect.center = int(x), int(y)

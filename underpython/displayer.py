@@ -16,6 +16,7 @@ class Displayer:
         else:
             self.window = pg.display.get_surface()
         self.surfaces = [pg.surface.Surface((1280, 960))]
+        print('Window Created.', end='\r')
 
     def set_window(self):
         pg.display.set_caption('UNDERTALE')
@@ -605,9 +606,9 @@ class UI:
             pg.draw.rect(gg.displayer[0], self._color, self.soul_rect.rect, 8)
 
         if gg.state == 'SOUL':
-            self.souls.get_now().update()
             w = self.wave
             w._update()
+            self.souls.get_now().update()
             if w.end:
                 gg.set_state('SELECT')
                 self._state = 'select'
