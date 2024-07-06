@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>UnderPython</title>
+        <link rel="stylesheet" href="./style.css">
+        <script>
+            function f(){
+                tags = document.getElementsByTagName('span')
+                for(var x = 0; x < 18; x++){
+                    t = tags[x]
+                    t.addEventListener(
+                        'click',
+                        function(){
+                            window.open(top.location.href.split('#')[0] + '#' + this.id, '_self')
+                            document.getElementById('frame').src = './temp_zhcn/' + this.id + '.html'
+                        }
+                    )
+                }
+                l = top.location.href.split('#')
+                if(l[1] != undefined)
+                    document.getElementById('frame').src = './temp_zhcn/' + l[1] + '.html'
+                else
+                    window.open(top.location.href + '#up')
+                document.getElementById(l[1]).style.color = 'yellow'
+            }
+            document.addEventListener('click', f)
+        </script>
+    </head>
+    <body>
+        <iframe id="frame"></iframe>
+        <div id="menu">
+            <h1 class="inner-menu" onclick="window.open('main.html', '_self')">English</h1>
+            <h1 class="inner-menu">目录</h1>
+            <h2 class="inner-menu">介绍</h2>
+            <span id="up" class="inner-menu">UnderPython - 传说之下，战斗，爽！</span>
+            <span id="inst" class="inner-menu">安装 - 下载并使用</span>
+            <span id="pk" class="inner-menu">预备知识 - 如何阅读此文档？</span>
+            <h2 class="inner-menu">基础</h2>
+            <span id="init" class="inner-menu">初始化 - 首先我们应该做什么？</span>
+            <span id="hook" class="inner-menu">钩子函数(Hooks) -（是这样叫的吗）</span>
+            <span id="game" class="inner-menu">游戏(Game) - hui常重要</span>
+            <span id="ani" class="inner-menu">动画(Animations - 管理图形</span>
+            <span id="dis" class="inner-menu">显示器(Displayer) - 窗口显示器</span>
+            <h2 class="inner-menu">数据存储</h2>
+            <span id="p" class="inner-menu">玩家(Player) - 我</span>
+            <span id="m" class="inner-menu">怪物(Monster) - 你的敌人</span>
+            <span id="inv" class="inner-menu">背包(Inventory) - 赤的东西</span>
+            <h2 class="inner-menu">游戏显示</h2>
+            <span id="ui" class="inner-menu">UI - 啥都有</span>
+            <span id="sr" class="inner-menu">灵魂框(SoulRect) - Man, what can I say?</span>
+            <h2 class="inner-menu">攻击</h2>
+            <span id="atk" class="inner-menu">攻击(Attack) - 飞来飞去</span>
+            <span id="soul" class="inner-menu">灵魂(Soul) - 保持躲避</span>
+            <span id="atks" class="inner-menu">攻击们(Attack) - 一块儿</span>
+            <span id="wave" class="inner-menu">波浪(Wave) - 我的回合</span>
+            <h2 class="inner-menu">总结</h2>
+            <span id="cred" class="inner-menu">致谢</span>
+        </div>
+        <script>
+            f()
+        </script>
+    </body>
+</html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>inst</title>
+        <link rel="stylesheet" href="../style.css">
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <h1>Hooks</h1>
+        <p>What if it happens?</p>
+        <p style="padding-top: 20px;">Let's just say that if you want to
+            program a undertale fight by underpython and you need to make a
+            special effect when your monster was dying, or say something when 
+            the player plays ACT, what can we do?
+        </p>
+        <p>Python was designed as both functions and classes can be treated as objects.
+            So we designed a convenient way to hook the functions you defined in your
+            code to the game's events. Let's just call them <code>hooks</code>.
+        </p>
+        <p>Here's an example of how to use hooks:</p>
+        <pre><code lang="python">import underpython
+# e.g. we want to print out the details when the player hurts.
+
+... # defining a player called "frisk"
+
+@frisk.events
+def on_attacked(attacker: monster.Monster, damage: int) -> int | None:
+    print(f"{frisk.name} was attacked by {attacker.name} for {damage} damage!")
+
+# for player and monster objects, to be mentioned later.
+... # other code here
+</code></pre>
+
+        <h2>Usage of hooks</h2>
+        <p>You can define your own hooks by decorating your functions with the <code>@GAME.events</code> decorator.
+        <h3>on_wave_end</h3>
+        <p>when a wave of attack ends</p>
+        <pre><code lang="python">def on_wave_end(wave: underpython.Wave):</code></pre>
+        <p>Arguments</p>
+        <li>wave: the current wave, to be mentioned later.</li>
+
+        <h3>on_wave_start</h3>
+        <p>when a new wave of attack starts</p>
+        <pre><code lang="python">def on_wave_start(wave: underpython.Wave):</code></pre>
+        <p>Arguments</p>
+        <li>wave: the current wave, to be mentioned later.</li>
+
+        <h3>on_init</h3>
+        <p>when the game is initializing.</p>
+        <pre><code lang="python">def on_init():</code></pre>
+
+        <h3>on_game_end</h3>
+        <p>when the game ends, either by winning or losing.</p>
+        <pre><code lang="python">def on_game_end():</code></pre>
+
+        <h3>on_game_won</h3>
+        <p>when you won the game.</p>
+        <pre><code lang="python">def on_game_won(method: GameMethod):</code></pre>
+        <p>Arguments</p>
+        <li>method: to be mentioned later.</li>
+
+        <h3>on_game_lost</h3>
+        <p>When you lose the game.</p>
+        <pre><code lang="python">def on_game_lost():</code></pre>
+
+        <h3>on_game_escaped</h3>
+        <p>When the player escapes in the game.</p>
+        <pre><code lang="python">def on_game_escaped():</code></pre>
+
+        <h3>on_game_quit</h3>
+        <p>When the player quits the game. (i.e. closes the window)</p>
+        <pre><code lang="python">def on_game_quit():</code></pre>
+
+        <h3>on_game_go</h3>
+        <p>When the fight just starts.</p>
+        <pre><code lang="python">def on_game_go():</code></pre>
+    </body>
+</html>
