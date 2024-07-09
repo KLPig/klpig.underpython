@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Animations Class Documentation</title>
+        <link rel="stylesheet" href="../style.css">
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <h1>Animations</h1>
+        <p>Graphic manager</p>
+
+        <h2>Class: Animations</h2>
+        <p>The Animations class is responsible for managing the playback and display of animations.</p>
+
+        
+        <h3>Constructor</h3>
+        <p>Initializes the Animations object with the specified parameters.</p>
+        <pre><code>Constructor(self, pos=(0, 0), scale=1, tpf=3)</code></pre>
+        <p>Arguments</p>
+        <ul>
+            <li><strong>pos:</strong> The initial position of the animation. Default is (0, 0).</li>
+            <li><strong>scale:</strong> The scale factor for the animation. Default is 1.</li>
+            <li><strong>tpf:</strong> The time per frame for the animation. Default is 3.</li>
+        </ul>
+
+        <h3>set_pos</h3>
+        <p>Sets the position of the animation.</p>
+        <pre><code>set_pos(self, pos)</code></pre>
+        <p>Arguments</p>
+        <ul>
+            <li><strong>pos:</strong> The new position for the animation.</li>
+        </ul>
+
+        <h3>add_animation</h3>
+        <p>Adds a new animation to the Animations object.</p>
+        <pre><code>add_animation(self, name: str, images: list[str], nxt: str = 'self')</code></pre>
+        <p>Arguments</p>
+        <ul>
+            <li><strong>name:</strong> The name of the animation.</li>
+            <li><strong>images:</strong> A list of image paths that make up the animation.</li>
+            <li><strong>nxt:</strong> The name of the next animation to play after this one. Default is 'self', meaning it will loop.</li>
+        </ul>
+
+        <h3>change_animation</h3>
+        <p>Changes the current animation to the specified animation.</p>
+        <pre><code>change_animation(self, name: str)</code></pre>
+        <p>Arguments</p>
+        <ul>
+            <li><strong>name:</strong> The name of the animation to switch to.</li>
+        </ul>
+
+        <h3>define_animation</h3>
+        <p>Defines an alias(similar to macro) for an existing animation.</p>
+        <pre><code>define_animation(self, old_ani: str, new_ani: str)</code></pre>
+        <p>Arguments</p>
+        <ul>
+            <li><strong>old_ani:</strong> The original name of the animation.</li>
+            <li><strong>new_ani:</strong> The new alias for the animation.</li>
+        </ul>
+
+        <h3>find_ani_name</h3>
+        <p>Finds the true name of an animation, resolving any aliases.</p>
+        <pre><code>find_ani_name(self, name: str) -> str</code></pre>
+        <p>Arguments</p>
+        <ul>
+            <li><strong>name:</strong> The name of the animation to resolve.</li>
+        </ul>
+        <h4>Return</h4>
+        <ul>
+            <li>The true name of the animation.</li>
+        </ul>
+        <h2>Usage</h2>
+        <p>In the instant version, Animation is only used for Monsters. (To be mentioned)</p>
+        <p>Remember to set the instant animation(i.e. use <code>change_animation()</code>) before starting the game.</p>
+    </body>
+</html>
