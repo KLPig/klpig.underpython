@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Player Class Documentation</title>
+        <link rel="stylesheet" href="../style.css">
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <h1>Player</h1>
+        <p>Character manager for combat in the game.</p>
+
+        <h2>Class: Player</h2>
+        <p>The Player class is responsible for managing the attributes and actions of the player character during combat scenarios.</p>
+
+        <h3>Constructor</h3>
+        <p>Initializes the Player object with the specified attributes.</p>
+        <pre><code>Constructor(self, name: str, hp: int, at: int, df: int, lv: int, wd_time: int = 20)</code></pre>
+        <p>Arguments</p>
+        <ul>
+            <li><strong>name:</strong> The name of the player. (e.g. Frisk, Chara, etc.)</li>
+            <li><strong>hp:</strong> The initial health points of the player. (Original undertale: mostly (LV * 4 + 16)HP)</li>
+            <li><strong>at:</strong> The attack power of the player.</li>
+            <li><strong>df:</strong> The defense power of the player.</li>
+            <li><strong>lv:</strong> The current level of the player. (Original undertale: LV 1-20)</li>
+            <li><strong>wd_time:</strong> The time being unattackable after being attacked. (Some attack may disable it.) Default is 20.</li>
+        </ul>
+
+        <h2>Hooks</h2>
+        <h3>hook_registrations: events</h3>
+
+        <h3>on_attack</h3>
+        <p>When attack and hurt somebody.</p>
+        <pre><code>on_attack(self, damage: int, target: Monster) -> int | None | str</code></pre>
+        <p>Arguments</p>
+        <ul>
+            <li><strong>damage:</strong> The base damage to be applied.</li>
+            <li><strong>target:</strong> The monster being attacked.</li>
+        </ul>
+        <h4>Return</h4>
+        <ul>
+            <li><strong>If <code>int</code> returned: </strong>The calculated damage based on player's attack and monster's defense.</li>
+            <li><strong>If <code>str</code> returned: </strong>Do no damage and show the message on screen instead. (e.g. return 'Miss')</li>
+            <li><strong>If <code>None</code> returned: </strong>Do nothing in calculating damage. (i.e. use the original damage.)</li>
+        </ul>
+
+        <h3>on_act</h3>
+        <p>When play choosed ACT.</p>
+        <pre><code>def on_act(self, name: str, target: monster.Monster)</code></pre>
+        <p>Arguments</p>
+        <ul>
+            <li><strong>name: </strong>The action name chosen. (e.g. Check)</li>
+            <li><strong>target:</strong> The monster to be acted.</li>
+        </ul>
+
+        <h3>on_item</h3>
+        <p>When play choosed ITEM.</p>
+        <pre><code>def on_item(self, name: str)</code></pre>
+        <p>Arguments</p>
+        <ul>
+            <li><strong>name: </strong>The item the player chosen to use. (e.g. Check)</li>
+        </ul>
+
+        <h3>on_mercy</h3>
+        <p>When play choosed MERCY.</p>
+        <pre><code>def on_mercy()</code></pre>
+
+        
+
+        <h3>heal</h3>
+        <p>Restores health points to the player.</p>
+        <pre><code>heal(self, hp: int, gg=None)</code></pre>
+        <p>Arguments</p>
+        <ul>
+            <li><strong>hp:</strong> The amount of health points to restore.</li>
+            <li><strong>gg:</strong> Optional game object for sound playback. Default is None.</li>
+        </ul>
+
+        <h3>hurt</h3>
+        <p>Reduces the player's health points due to damage.</p>
+        <pre><code>hurt(self, hp: int)</code></pre>
+        <p>Arguments</p>
+        <ul>
+            <li><strong>hp:</strong> The amount of health points to reduce.</li>
+        </ul>
+
+        <h3>st_wd</h3>
+        <p>Sets the wait time for the player.</p>
+        <pre><code>st_wd(self)</code></pre>
+
+        <h3>update</h3>
+        <p>Updates the player's state, including reducing the wait time.</p>
+        <pre><code>update(self)</code></pre>
+
+        <h3>write_data</h3>
+        <p>Copies attributes from another Player object.</p>
+        <pre><code>write_data(self, p)</code></pre>
+        <p>Arguments</p>
+        <ul>
+            <li><strong>p:</strong> The Player object from which to copy attributes.</li>
+        </ul>
+
+        <h2>Usage</h2>
+        <p>The Player class is integral to the combat system, handling all player-related actions and attributes. Ensure all necessary hooks are set up before engaging in combat.</p>
+    </body>
+</html>

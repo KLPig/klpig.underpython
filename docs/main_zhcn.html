@@ -17,10 +17,13 @@
                     )
                 }
                 l = top.location.href.split('#')
-                if(l[1] != undefined)
+                if(l[1] != undefined){
                     document.getElementById('frame').src = './temp_zhcn/' + l[1] + '.html'
-                else
-                    window.open(top.location.href + '#up')
+                    document.getElementById("menu").style.width = 'max(20svw, 20%)'
+                }else{
+                    document.getElementById('frame').style.width = 0
+                    document.getElementById("menu").style.width = 'max(100svw, 100%)'
+                }
                 document.getElementById(l[1]).style.color = 'yellow'
             }
             document.addEventListener('click', f)
