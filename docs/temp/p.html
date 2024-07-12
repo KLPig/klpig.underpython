@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Player Class Documentation</title>
+        <title>p</title>
         <link rel="stylesheet" href="../style.css">
         <link rel="stylesheet" href="style.css">
     </head>
@@ -25,9 +25,24 @@
             <li><strong>wd_time:</strong> The time being unattackable after being attacked. (Some attack may disable it.) Default is 20.</li>
         </ul>
 
+        <h3>write_data</h3>
+        <p>Copies attributes from another Player object. (used for overworld-connection)</p>
+        <pre><code>write_data(self, p)</code></pre>
+        <p>Arguments</p>
+        <ul>
+            <li><strong>p:</strong> The Player object from which to copy attributes.</li>
+        </ul>
+
         <h2>Hooks</h2>
         <h3>hook_registrations: events</h3>
-
+        <h3>Usage:</h3>
+        <pre><code lang="python">
+@player_object.events
+def available_hook_name(arg1, arg2, ...) -> return_type:
+    # code here
+        </code></pre>
+        <p>Note that their should not be a 'self' argument in the hook function.</p>
+        <h2>Hooks List:</h2>
         <h3>on_attack</h3>
         <p>When attack and hurt somebody.</p>
         <pre><code>on_attack(self, damage: int, target: Monster) -> int | None | str</code></pre>
@@ -83,23 +98,5 @@
             <li><strong>hp:</strong> The amount of health points to reduce.</li>
         </ul>
 
-        <h3>st_wd</h3>
-        <p>Sets the wait time for the player.</p>
-        <pre><code>st_wd(self)</code></pre>
-
-        <h3>update</h3>
-        <p>Updates the player's state, including reducing the wait time.</p>
-        <pre><code>update(self)</code></pre>
-
-        <h3>write_data</h3>
-        <p>Copies attributes from another Player object.</p>
-        <pre><code>write_data(self, p)</code></pre>
-        <p>Arguments</p>
-        <ul>
-            <li><strong>p:</strong> The Player object from which to copy attributes.</li>
-        </ul>
-
-        <h2>Usage</h2>
-        <p>The Player class is integral to the combat system, handling all player-related actions and attributes. Ensure all necessary hooks are set up before engaging in combat.</p>
     </body>
 </html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>m</title>
+        <link rel="stylesheet" href="../style.css">
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <h1>Monster</h1>
+        <p>Enemy character manager for combat in the game.</p>
+
+        <h2>Class: Monster</h2>
+        <p>The Monster class is responsible for managing the attributes and actions of enemy characters during combat scenarios.</p>
+
+        <h3>Constructor</h3>
+        <p>Initializes the Monster object with the specified attributes.</p>
+        <pre><code>Constructor(self, animation, name: str, hp: int, at: int, df: int, act_options: list[str] = [])</code></pre>
+        <p>Arguments</p>
+        <ul>
+            <li><strong>animation:</strong> The <a href="ani.html">animation object</a> associated with the monster.</li>
+            <li><strong>name:</strong> The name of the monster.</li>
+            <li><strong>hp:</strong> The initial health points of the monster.</li>
+            <li><strong>at:</strong> The attack power of the monster.</li>
+            <li><strong>df:</strong> The defense power of the monster.</li>
+            <li><strong>act_options:</strong> A list of additional actions the monster can perform.</li>
+        </ul>
+
+        <h3>hurt</h3>
+        <p>Reduces the monster's health points due to damage.</p>
+        <pre><code>hurt(self, damage: int)</code></pre>
+        <p>Arguments</p>
+        <ul>
+            <li><strong>damage:</strong> The amount of health points to reduce.</li>
+        </ul>
+
+        <h3>heal</h3>
+        <p>Restores health points to the monster.</p>
+        <pre><code>heal(self, num: int)</code></pre>
+        <p>Arguments</p>
+        <ul>
+            <li><strong>num:</strong> The amount of health points to restore.</li>
+        </ul>
+
+        <h2>Hooks</h2>
+        <h3>hook_registrations: events</h3>
+        <h3>Usage:</h3>
+        <pre><code lang="python">
+@monster_object.events
+def available_hook_name(arg1, arg2, ...) -> return_type:
+    # code here
+        </code></pre>
+        <p>Note that their should not be a 'self' argument in the hook function.</p>
+        <h2>Hooks List:</h2>
+        <h3>on_act</h3>
+        <p>When the player use ACT, targeted to the current monster.</p>
+        <pre><code>on_act(self, name: str) -> list[str] | None</code></pre>
+        <p>Arguments</p>
+        <ul>
+            <li><strong>name: </strong>The action name performed. (e.g. Check)</li>
+        </ul>
+
+    </body>
+</html>
